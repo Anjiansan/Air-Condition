@@ -60,17 +60,25 @@ void ClientConn::handleRqt(QJsonDocument parse_document)
     }
     else if(op==REPORT_STATE)
     {
-        int is_on=parse_document.object().value("is_on").toBool();
+        bool is_on=parse_document.object().value("is_on").toBool();
         qDebug()<<is_on;
 
-        QJsonObject json;
-        json.insert("ret", REPLY_CON);
-        json.insert("is_valid", true);
-        json.insert("cost", 0.0);
-        json.insert("power",0.0);
-        QJsonDocument document;
-        document.setObject(json);
+        if(!is_on)  //从控机关机
+        {
+            this->thread()->quit();
+        }
+        else
+        {
+            QJsonObject json;
+            json.insert("ret", REPLY_CON);
+            json.insert("is_valid", true);
+            json.insert("cost", 0.0);
+            json.insert("power",0.0);
+            QJsonDocument document;
+            document.setObject(json);
 
-        sendData(document);
+            sendData(document);
+
+        }
     }
 }

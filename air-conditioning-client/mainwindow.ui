@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QPushButton" name="loginBtn">
+   <widget class="QPushButton" name="exitBtn">
     <property name="geometry">
      <rect>
       <x>70</x>
@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Login</string>
+     <string>exit</string>
     </property>
    </widget>
    <widget class="QPushButton" name="reqStopBtn">

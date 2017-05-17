@@ -15,9 +15,9 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_loginBtn_clicked()
+void MainWindow::on_exitBtn_clicked()
 {
-    client->login(0,"0");
+    client->sendReq(false,false,22,22,2);
 }
 
 void MainWindow::on_reqStopBtn_clicked()

@@ -18,7 +18,7 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_loginBtn_clicked();
+    void on_exitBtn_clicked();
 
     void on_reqStopBtn_clicked();
 
