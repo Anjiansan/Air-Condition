@@ -15,7 +15,6 @@ Login::Login(QWidget *parent) :
 Login::~Login()
 {
     delete ui;
-    delete client;
 }
 
 void Login::on_cancleBtn_clicked()

@@ -21,6 +21,7 @@ void ClientSocket::receiveData()
     if(err.error==QJsonParseError::NoError)
     {
         int ret=parse_document.object().value("ret").toInt();
+        qDebug()<<ret;
         if(ret==LOG_IN_SUCC)
         {
             emit loginSignal(true);
@@ -28,6 +29,16 @@ void ClientSocket::receiveData()
         else if(ret==LOG_IN_FAIL)
         {
             emit loginSignal(false);
+        }
+        else if(ret==REPLY_CON)
+        {
+            bool is_valid=parse_document.object().value("is_valid").toBool();
+            double power=parse_document.object().value("power").toDouble();
+            double money=parse_document.object().value("money").toDouble();
+
+            qDebug()<<"rec";
+
+            emit updateUI(is_valid,power,money);
         }
     }
 }
@@ -51,7 +62,7 @@ void ClientSocket::sendReq(bool in_on, bool is_heat_mode, int set_temp, int real
 {
     QJsonObject json;
     json.insert("op", REPORT_STATE);
-    json.insert("in_on", in_on);
+    json.insert("is_on", in_on);
     json.insert("is_heat_mode", is_heat_mode);
     json.insert("set_temp", set_temp);
     json.insert("real_temp", real_temp);

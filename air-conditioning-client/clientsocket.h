@@ -19,6 +19,8 @@ public:
 signals:
     void loginSignal(bool);
 
+    void updateUI(bool,double,double);
+
 private slots:
     void receiveData(void);
 

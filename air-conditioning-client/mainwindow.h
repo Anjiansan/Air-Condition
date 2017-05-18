@@ -20,18 +20,18 @@ public:
 private slots:
     void on_exitBtn_clicked();
 
-    void on_reqStopBtn_clicked();
+    void updateUISlot(bool is_valid,double power,double money);
 
-    void on_reqResumeBtn_clicked();
-
-    void on_reqUpdateBnt_clicked();
-
-    void on_rptStateBtm_clicked();
+    void on_riseTem_clicked();
 
 private:
     Ui::MainWindow *ui;
 
     ClientSocket *client;
+    bool isHeatMode;    //是否为制暖模式
+    int realTem;//实时温度
+    int setTem; //设置温度
+    int speed;  //风速
 };
 
 #endif // MAINWINDOW_H
