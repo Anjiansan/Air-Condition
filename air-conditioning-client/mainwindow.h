@@ -24,6 +24,16 @@ private slots:
 
     void on_riseTem_clicked();
 
+    void on_reduceTem_clicked();
+
+    void on_riseSpeed_clicked();
+
+    void on_reduceSpeed_clicked();
+
+    void on_coldModeBtn_clicked();
+
+    void on_heatModeBtn_clicked();
+
 private:
     Ui::MainWindow *ui;
 
