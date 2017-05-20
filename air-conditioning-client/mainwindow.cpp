@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent, ClientSocket *client) :
 
     ui->realTemNum->display(realTem);
     ui->setTemNum->display(setTem);
+    ui->speedNum->display(speed);
     ui->mode->setText("制冷");
     ui->coldModeBtn->setEnabled(false);
 
@@ -32,6 +33,7 @@ MainWindow::~MainWindow()
 void MainWindow::on_exitBtn_clicked()
 {
     client->sendReq(false,false,22,22,2);
+
     this->close();
 }
 

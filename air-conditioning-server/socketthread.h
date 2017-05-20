@@ -7,13 +7,14 @@ class ClientConn;
 class SocketThread : public QThread
 {
 public:
-    SocketThread(QWidget * parent,qintptr p);
+    SocketThread(QWidget * parent,qintptr p,MainWindow *mainWindow);
 
 protected:
     virtual void run();
 
 private:
     qintptr ptr;
+    MainWindow *mainWindow;
     ClientConn *client;
 };
 

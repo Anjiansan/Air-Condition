@@ -3,7 +3,7 @@
 
 #include <QtNetwork>
 
-class ServerSocket;
+//class ServerSocket;
 #include "socketthread.h"
 
 class ServerSocket:public QTcpServer
