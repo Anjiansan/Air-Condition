@@ -17,14 +17,14 @@
    <widget class="QPushButton" name="exitBtn">
     <property name="geometry">
      <rect>
-      <x>70</x>
-      <y>10</y>
+      <x>220</x>
+      <y>20</y>
       <width>98</width>
       <height>24</height>
      </rect>
     </property>
     <property name="text">
-     <string>退出</string>
+     <string>关</string>
     </property>
    </widget>
    <widget class="QPushButton" name="riseTem">
@@ -241,7 +241,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>260</x>
@@ -269,6 +269,19 @@
       </widget>
      </item>
     </layout>
+   </widget>
+   <widget class="QPushButton" name="turnOnBtn">
+    <property name="geometry">
+     <rect>
+      <x>80</x>
+      <y>20</y>
+      <width>98</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>开</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">

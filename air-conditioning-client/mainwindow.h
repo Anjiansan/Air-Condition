@@ -34,6 +34,8 @@ private slots:
 
     void on_heatModeBtn_clicked();
 
+    void on_turnOnBtn_clicked();
+
 private:
     Ui::MainWindow *ui;
 

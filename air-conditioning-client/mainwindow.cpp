@@ -18,16 +18,24 @@ MainWindow::MainWindow(QWidget *parent, ClientSocket *client) :
     ui->mode->setText("制冷");
     ui->coldModeBtn->setEnabled(false);
 
+    ui->exitBtn->setEnabled(false);
+
     this->client=client;
     connect(this->client,SIGNAL(updateUI(bool,double,double)),this,SLOT(updateUISlot(bool,double,double)));
 
-    this->client->sendReq(true,isHeatMode,realTem,setTem,speed);
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
     delete client;
+}
+
+void MainWindow::on_turnOnBtn_clicked()
+{
+    ui->turnOnBtn->setEnabled(false);
+    ui->exitBtn->setEnabled(true);
+    this->client->sendReq(true,isHeatMode,realTem,setTem,speed);
 }
 
 void MainWindow::on_exitBtn_clicked()
