@@ -24,6 +24,41 @@ void ClientConn::sendData(QJsonDocument document)
     this->write(data);
 }
 
+bool ClientConn::isReqValid(bool isHeatMode, int setTem, int realTem)
+{
+    bool mode=mainWindow->getMode();    //主控机模式
+
+    if(mode==isHeatMode)
+    {
+        if(isHeatMode)  //制暖
+        {
+            if(realTem<setTem)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else    //制冷
+        {
+            if(realTem>setTem)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
+    else
+    {
+        return false;
+    }
+}
+
 void ClientConn::receiveData()
 {
 //    qDebug()<<QThread::currentThreadId();
@@ -84,7 +119,7 @@ void ClientConn::handleRqt(QJsonDocument parse_document)
 
             QJsonObject json;
             json.insert("ret", REPLY_CON);
-            json.insert("is_valid", true);
+            json.insert("is_valid", isReqValid(is_heat_mode,set_tem,real_tem));
             json.insert("cost", 0.0);
             json.insert("power",0.0);
             QJsonDocument document;

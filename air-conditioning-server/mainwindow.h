@@ -34,6 +34,8 @@ public:
 
     QMap<int,QString> getRooms();
 
+    bool getMode();
+
 private slots:
     void showClientState(QTreeWidgetItem* item,int column);
 
@@ -45,8 +47,14 @@ private slots:
 
     void on_addRoomBtn_clicked();
 
+    void on_heatModeBtn_clicked();
+
+    void on_coldModeBtn_clicked();
+
 private:
     Ui::MainWindow *ui;
+
+    bool isHeatMode;    //工作模式
 
     ServerSocket *server;
     QMap<int,QString> rooms; //房间列表

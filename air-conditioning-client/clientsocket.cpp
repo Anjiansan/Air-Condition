@@ -36,8 +36,6 @@ void ClientSocket::receiveData()
             double power=parse_document.object().value("power").toDouble();
             double money=parse_document.object().value("money").toDouble();
 
-            qDebug()<<"rec";
-
             emit updateUI(is_valid,power,money);
         }
     }

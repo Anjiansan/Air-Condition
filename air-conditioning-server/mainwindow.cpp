@@ -9,6 +9,9 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    this->isHeatMode=false; //制冷模式
+    ui->coldModeBtn->setEnabled(false);
+
     server=new ServerSocket(this);
     server->listen(QHostAddress::AnyIPv4,11967);
 
@@ -41,6 +44,11 @@ MainWindow::~MainWindow()
 QMap<int, QString> MainWindow::getRooms()
 {
     return rooms;
+}
+
+bool MainWindow::getMode()
+{
+    return isHeatMode;
 }
 
 void MainWindow::showClientState(QTreeWidgetItem *item, int column)
@@ -103,4 +111,20 @@ void MainWindow::on_addRoomBtn_clicked()
 
     ui->roomText->clear();  //添加完清除
     ui->pwdText->clear();
+}
+
+void MainWindow::on_heatModeBtn_clicked()
+{
+    this->isHeatMode=true;  //更换工作模式
+
+    ui->heatModeBtn->setEnabled(false);
+    ui->coldModeBtn->setEnabled(true);
+}
+
+void MainWindow::on_coldModeBtn_clicked()
+{
+    this->isHeatMode=false;  //更换工作模式
+
+    ui->heatModeBtn->setEnabled(true);
+    ui->coldModeBtn->setEnabled(false);
 }

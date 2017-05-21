@@ -29,6 +29,8 @@ public slots:
 
     void sendData(QJsonDocument document);
 
+    bool isReqValid(bool isHeatMode,int setTem,int realTem);
+
 private:
     MainWindow *mainWindow;
     int room_id;

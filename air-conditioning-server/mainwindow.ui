@@ -201,7 +201,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>270</x>
@@ -230,7 +230,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>370</x>
@@ -255,6 +255,32 @@
       </widget>
      </item>
     </layout>
+   </widget>
+   <widget class="QPushButton" name="heatModeBtn">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>10</y>
+      <width>98</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>制暖</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="coldModeBtn">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>50</y>
+      <width>98</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>制冷</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
