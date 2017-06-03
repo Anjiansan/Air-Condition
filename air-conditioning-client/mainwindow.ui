@@ -183,7 +183,7 @@
      <item>
       <widget class="QLabel" name="mode">
        <property name="text">
-        <string>TextLabel</string>
+        <string/>
        </property>
       </widget>
      </item>
@@ -209,7 +209,7 @@
      <item>
       <widget class="QLabel" name="power">
        <property name="text">
-        <string>TextLabel</string>
+        <string>0.0</string>
        </property>
       </widget>
      </item>
@@ -235,7 +235,7 @@
      <item>
       <widget class="QLabel" name="money">
        <property name="text">
-        <string>TextLabel</string>
+        <string>0.0</string>
        </property>
       </widget>
      </item>

@@ -11,6 +11,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     this->isHeatMode=false; //制冷模式
     ui->coldModeBtn->setEnabled(false);
+    temp=22;    //制冷默认温度
+    ui->tempBox->setValue(22);
+    ui->tempBox->setRange(18,25);
 
     server=new ServerSocket(this);
     server->listen(QHostAddress::AnyIPv4,2222);
@@ -49,6 +52,11 @@ QMap<int, QString> MainWindow::getRooms()
 bool MainWindow::getMode()
 {
     return isHeatMode;
+}
+
+int MainWindow::getTemp()
+{
+    return temp;
 }
 
 void MainWindow::showClientState(QTreeWidgetItem *item, int column)
@@ -116,6 +124,9 @@ void MainWindow::on_addRoomBtn_clicked()
 void MainWindow::on_heatModeBtn_clicked()
 {
     this->isHeatMode=true;  //更换工作模式
+    temp=28;    //供暖默认温度
+    ui->tempBox->setRange(25,30);
+    ui->tempBox->setValue(28);
 
     ui->heatModeBtn->setEnabled(false);
     ui->coldModeBtn->setEnabled(true);
@@ -124,7 +135,15 @@ void MainWindow::on_heatModeBtn_clicked()
 void MainWindow::on_coldModeBtn_clicked()
 {
     this->isHeatMode=false;  //更换工作模式
+    temp=22;    //制冷默认温度
+    ui->tempBox->setRange(18,25);
+    ui->tempBox->setValue(22);
 
     ui->heatModeBtn->setEnabled(true);
     ui->coldModeBtn->setEnabled(false);
+}
+
+void MainWindow::on_tempBox_valueChanged(int arg1)
+{
+    temp=arg1;
 }

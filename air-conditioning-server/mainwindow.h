@@ -36,6 +36,8 @@ public:
 
     bool getMode();
 
+    int getTemp();
+
 private slots:
     void showClientState(QTreeWidgetItem* item,int column);
 
@@ -51,10 +53,13 @@ private slots:
 
     void on_coldModeBtn_clicked();
 
+    void on_tempBox_valueChanged(int arg1);
+
 private:
     Ui::MainWindow *ui;
 
     bool isHeatMode;    //工作模式
+    int temp;   //温度
 
     ServerSocket *server;
     QMap<int,QString> rooms; //房间列表

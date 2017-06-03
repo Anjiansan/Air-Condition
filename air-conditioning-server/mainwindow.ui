@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>566</width>
-    <height>337</height>
+    <width>612</width>
+    <height>352</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -140,7 +140,7 @@
      <item>
       <widget class="QLabel" name="money">
        <property name="text">
-        <string>TextLabel</string>
+        <string/>
        </property>
       </widget>
      </item>
@@ -149,7 +149,7 @@
    <widget class="QWidget" name="layoutWidget_3">
     <property name="geometry">
      <rect>
-      <x>460</x>
+      <x>470</x>
       <y>90</y>
       <width>83</width>
       <height>49</height>
@@ -195,7 +195,7 @@
      <item>
       <widget class="QLabel" name="mode">
        <property name="text">
-        <string>TextLabel</string>
+        <string/>
        </property>
       </widget>
      </item>
@@ -250,7 +250,7 @@
      <item>
       <widget class="QLabel" name="power">
        <property name="text">
-        <string>TextLabel</string>
+        <string/>
        </property>
       </widget>
      </item>
@@ -259,7 +259,7 @@
    <widget class="QPushButton" name="heatModeBtn">
     <property name="geometry">
      <rect>
-      <x>410</x>
+      <x>380</x>
       <y>10</y>
       <width>98</width>
       <height>24</height>
@@ -272,7 +272,7 @@
    <widget class="QPushButton" name="coldModeBtn">
     <property name="geometry">
      <rect>
-      <x>410</x>
+      <x>380</x>
       <y>50</y>
       <width>98</width>
       <height>24</height>
@@ -282,13 +282,35 @@
      <string>制冷</string>
     </property>
    </widget>
+   <widget class="QWidget" name="layoutWidget_5">
+    <property name="geometry">
+     <rect>
+      <x>500</x>
+      <y>20</y>
+      <width>98</width>
+      <height>52</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_7">
+     <item>
+      <widget class="QLabel" name="TempLab">
+       <property name="text">
+        <string>中央空调温度</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="tempBox"/>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>566</width>
+     <width>612</width>
      <height>23</height>
     </rect>
    </property>

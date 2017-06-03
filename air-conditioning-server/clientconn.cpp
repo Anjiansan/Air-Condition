@@ -19,7 +19,9 @@ ClientConn::~ClientConn()
 void ClientConn::sendData(QJsonDocument document)
 {
     QByteArray data = document.toJson(QJsonDocument::Compact);
-    qDebug()<<data;
+    QDateTime timeNow=QDateTime::currentDateTime();//获取系统现在的时间
+    QString str = timeNow.toString("hh:mm:ss"); //设置显示格式
+    qDebug()<<str<<data;
 
     this->write(data,512);
 }
@@ -27,6 +29,7 @@ void ClientConn::sendData(QJsonDocument document)
 bool ClientConn::isReqValid(bool isHeatMode, int setTem, int realTem)
 {
     bool mode=mainWindow->getMode();    //主控机模式
+    int temp=mainWindow->getTemp(); //  主机温度
 
     if(mode==isHeatMode)
     {
@@ -61,24 +64,32 @@ bool ClientConn::isReqValid(bool isHeatMode, int setTem, int realTem)
 
 void ClientConn::receiveData()
 {
-//    qDebug()<<QThread::currentThreadId();
-
     char data[512];
     this->read(data,512);
 
-    qDebug()<<data;
+    QDateTime timeNow=QDateTime::currentDateTime();//获取系统现在的时间
+    QString str = timeNow.toString("hh:mm:ss"); //设置显示格式
+    qDebug()<<str<<data;
+
+//    qDebug()<<data;
     QJsonParseError err;
     QJsonDocument parse_document = QJsonDocument::fromJson(data,&err);
     if(err.error==QJsonParseError::NoError)
     {
         handleRqt(parse_document);
     }
+
+//    qDebug()<<this->bytesAvailable();
+    if(this->bytesAvailable()>0)
+    {
+        emit this->readyRead();
+    }
 }
 
 void ClientConn::handleRqt(QJsonDocument parse_document)
 {
     int op=parse_document.object().value("op").toInt();
-    qDebug()<<op;
+//    qDebug()<<op;
 
     if(op==LOG_IN_USER)
     {

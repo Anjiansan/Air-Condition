@@ -3,7 +3,7 @@
 ClientSocket::ClientSocket(QWidget *parent)
 {
     client=new QTcpSocket(this);
-    client->connectToHost(QHostAddress("192.168.43.23"),2222);
+    client->connectToHost(QHostAddress("127.0.0.1"),2222);
 
     connect(client,SIGNAL(readyRead()),this,SLOT(receiveData()));
 }
@@ -15,9 +15,11 @@ ClientSocket::~ClientSocket()
 
 void ClientSocket::receiveData()
 {
+    QDateTime timeNow=QDateTime::currentDateTime();//获取系统现在的时间
+    QString str = timeNow.toString("hh:mm:ss"); //设置显示格式
     char data[512];
     client->read(data,512);
-    qDebug()<<data;
+    qDebug()<<str<<data;
     QJsonParseError err;
     QJsonDocument parse_document = QJsonDocument::fromJson(data,&err);
     if(err.error==QJsonParseError::NoError)
@@ -40,6 +42,11 @@ void ClientSocket::receiveData()
 
             emit updateUI(is_valid,power,money);
         }
+    }
+
+    if(client->bytesAvailable()>0)
+    {
+        emit client->readyRead();
     }
 }
 
@@ -70,8 +77,11 @@ void ClientSocket::sendReq(bool in_on, bool is_heat_mode, int set_temp, int real
 
     QJsonDocument document;
     document.setObject(json);
-    QByteArray data = document.toJson(QJsonDocument::Indented);
-    qDebug()<<data;
+    QByteArray data = document.toJson(QJsonDocument::Compact);
+//    qDebug()<<data;
 
     client->write(data,512);
+    QDateTime timeNow=QDateTime::currentDateTime();//获取系统现在的时间
+    QString str = timeNow.toString("hh:mm:ss"); //设置显示格式
+    qDebug()<<str<<data;
 }

@@ -51,6 +51,8 @@ private:
     int realTem;//实时温度
     int setTem; //设置温度
     int speed;  //风速
+    int outDoorTem; //室外温度
+    int speedToTime[3]; //风速转换为定时器时间
     QTimer *sendTimer;  //周期发送状态
     QTimer *workTimer;  //空调工作时定时器
     QTimer *naturalTimer;   //温度自然变化定时器
