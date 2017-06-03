@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->coldModeBtn->setEnabled(false);
 
     server=new ServerSocket(this);
-    server->listen(QHostAddress::AnyIPv4,11967);
+    server->listen(QHostAddress::AnyIPv4,2222);
 
     rooms.insert(0,"0");
 

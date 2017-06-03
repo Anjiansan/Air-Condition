@@ -93,8 +93,9 @@ void MainWindow::naturalUpdateTem()
         this->naturalTimer->stop();
         client->sendReq(true,isHeatMode,setTem,realTem,speed);  //温差超过一度发送请求
 
-        if(this->realTem>=40)
+        if(this->realTem>=22)
         {
+            this->realTem=22;
             this->naturalTimer->stop();
         }
     }

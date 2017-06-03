@@ -18,10 +18,10 @@ ClientConn::~ClientConn()
 
 void ClientConn::sendData(QJsonDocument document)
 {
-    QByteArray data = document.toJson(QJsonDocument::Indented);
-//    qDebug()<<data;
+    QByteArray data = document.toJson(QJsonDocument::Compact);
+    qDebug()<<data;
 
-    this->write(data);
+    this->write(data,512);
 }
 
 bool ClientConn::isReqValid(bool isHeatMode, int setTem, int realTem)
@@ -63,7 +63,10 @@ void ClientConn::receiveData()
 {
 //    qDebug()<<QThread::currentThreadId();
 
-    QByteArray data=this->readAll();
+    char data[512];
+    this->read(data,512);
+
+    qDebug()<<data;
     QJsonParseError err;
     QJsonDocument parse_document = QJsonDocument::fromJson(data,&err);
     if(err.error==QJsonParseError::NoError)
