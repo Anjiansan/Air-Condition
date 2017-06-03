@@ -1,5 +1,8 @@
 #include "clientconn.h"
 
+QVector<int> ClientConn::query;
+QMutex ClientConn::mutex;
+
 ClientConn::ClientConn(qintptr socketDescriptor, MainWindow *mainWindow, QObject *parent)
 {
     this->setSocketDescriptor(socketDescriptor);
@@ -24,6 +27,10 @@ void ClientConn::sendData(QJsonDocument document)
     qDebug()<<str<<data;
 
     this->write(data,512);
+
+    ClientConn::mutex.lock();   //加锁
+    ClientConn::query.remove(ClientConn::query.indexOf(this->room_id));
+    ClientConn::mutex.unlock(); //解锁
 }
 
 bool ClientConn::isReqValid(bool isHeatMode, int setTem, int realTem)
@@ -89,21 +96,34 @@ void ClientConn::receiveData()
 void ClientConn::handleRqt(QJsonDocument parse_document)
 {
     int op=parse_document.object().value("op").toInt();
-//    qDebug()<<op;
 
     if(op==LOG_IN_USER)
     {
         int room_id=parse_document.object().value("room_id").toInt();
         QString user_id=parse_document.object().value("user_id").toString();
 
-        QJsonObject json;
-        QMap<int,QString> rooms=this->mainWindow->getRooms();
-        if(rooms.contains(room_id)&&rooms[room_id]==user_id)
-        {
-            json.insert("ret", LOG_IN_SUCC);
+        ClientConn::mutex.lock();   //加锁
+        ClientConn::query.append(this->room_id);
 
-            this->room_id=room_id;  //记住room_id
-            emit clientLogined(this->room_id);  //更新界面
+        bool isDeal=false;
+        if(ClientConn::query.size()<3)  //可以处理
+            isDeal=true;
+        ClientConn::mutex.unlock(); //解锁
+
+        QJsonObject json;
+        if(isDeal)  //可以处理
+        {
+            QMap<int,QString> rooms=this->mainWindow->getRooms();
+            if(rooms.contains(room_id)&&rooms[room_id]==user_id)
+            {
+                json.insert("ret", LOG_IN_SUCC);
+                this->room_id=room_id;  //记住room_id
+                emit clientLogined(this->room_id);  //更新界面
+            }
+            else
+            {
+                json.insert("ret", LOG_IN_FAIL);
+            }
         }
         else
         {
@@ -116,31 +136,54 @@ void ClientConn::handleRqt(QJsonDocument parse_document)
     }
     else if(op==REPORT_STATE)
     {
-        bool is_on=parse_document.object().value("is_on").toBool();
-        bool is_heat_mode=parse_document.object().value("is_heat_mode").toBool();
-        int set_tem=parse_document.object().value("set_temp").toInt();
-        int real_tem=parse_document.object().value("real_temp").toInt();
-        int speed=parse_document.object().value("speed").toInt();
+        ClientConn::mutex.lock();   //加锁
+        ClientConn::query.append(this->room_id);
 
-        if(!is_on)  //从控机关机
+        bool isDeal=false;
+        if(ClientConn::query.size()<3)  //可以处理
+            isDeal=true;
+        ClientConn::mutex.unlock(); //解锁
+
+        if(isDeal)  //可以处理
         {
-            emit clientOfflined(this->room_id);
-            this->thread()->quit();
+            bool is_on=parse_document.object().value("is_on").toBool();
+            bool is_heat_mode=parse_document.object().value("is_heat_mode").toBool();
+            int set_tem=parse_document.object().value("set_temp").toInt();
+            int real_tem=parse_document.object().value("real_temp").toInt();
+            int speed=parse_document.object().value("speed").toInt();
+
+            if(!is_on)  //从控机关机
+            {
+                emit clientOfflined(this->room_id);
+                this->thread()->quit();
+            }
+            else
+            {
+                emit updateData(room_id,is_heat_mode,set_tem,real_tem,speed);   //更新客户端数据
+
+                QJsonObject json;
+                json.insert("ret", REPLY_CON);
+                json.insert("is_valid", isReqValid(is_heat_mode,set_tem,real_tem));
+                json.insert("cost", 0.0);
+                json.insert("power",0.0);
+                QJsonDocument document;
+                document.setObject(json);
+
+                sendData(document);
+
+            }
         }
         else
         {
-            emit updateData(room_id,is_heat_mode,set_tem,real_tem,speed);   //更新客户端数据
-
             QJsonObject json;
             json.insert("ret", REPLY_CON);
-            json.insert("is_valid", isReqValid(is_heat_mode,set_tem,real_tem));
+            json.insert("is_valid", false);
             json.insert("cost", 0.0);
             json.insert("power",0.0);
             QJsonDocument document;
             document.setObject(json);
 
             sendData(document);
-
         }
     }
 }

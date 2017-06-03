@@ -2,6 +2,7 @@
 #define CLIENTCONN_H
 
 #include <QtNetwork>
+#include <QMutex>
 class MainWindow;
 #include "mainwindow.h"
 #include "protocol.h"
@@ -35,6 +36,8 @@ private:
     MainWindow *mainWindow;
     int room_id;
 
+    static QVector<int> query;   //请求队列
+    static QMutex mutex;    //线程锁
 };
 
 #endif // CLIENTCONN_H
