@@ -7,6 +7,8 @@
 
 class ServerSocket;
 #include "serversocket.h"
+class DBManager;
+#include "dbmanager.h"
 
 class ClientData
 {
@@ -38,6 +40,10 @@ public:
 
     int getTemp();
 
+    int getFlashSpeed();
+
+    DBManager *getDBManager();
+
 private slots:
     void showClientState(QTreeWidgetItem* item,int column);
 
@@ -55,16 +61,21 @@ private slots:
 
     void on_tempBox_valueChanged(int arg1);
 
+    void on_flashSpdBox_valueChanged(int arg1);
+
 private:
     Ui::MainWindow *ui;
 
     bool isHeatMode;    //工作模式
     int temp;   //温度
+    int flashSpeed; //刷新频率
 
     ServerSocket *server;
     QMap<int,QString> rooms; //房间列表
     QMap<int,struct ClientData*> clientsData;    //在线客户端数据
     QTreeWidgetItem *loginedWidget;   //在线客户端
+
+    DBManager *dbManage; //持久层:数据库类
 };
 
 #endif // MAINWINDOW_H

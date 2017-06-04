@@ -15,10 +15,16 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tempBox->setValue(22);
     ui->tempBox->setRange(18,25);
 
+    flashSpeed=2000;    //默认刷新频率
+    ui->flashSpdBox->setRange(1000,1000000);
+    ui->flashSpdBox->setValue(2000);
+
     server=new ServerSocket(this);
     server->listen(QHostAddress::AnyIPv4,2222);
 
     rooms.insert(0,"0");
+
+    dbManage=new DBManager();
 
     ui->treeWidget->setColumnCount(1);  //初始化客户端列表
 
@@ -57,6 +63,16 @@ bool MainWindow::getMode()
 int MainWindow::getTemp()
 {
     return temp;
+}
+
+int MainWindow::getFlashSpeed()
+{
+    return flashSpeed;
+}
+
+DBManager *MainWindow::getDBManager()
+{
+    return dbManage;
 }
 
 void MainWindow::showClientState(QTreeWidgetItem *item, int column)
@@ -146,4 +162,9 @@ void MainWindow::on_coldModeBtn_clicked()
 void MainWindow::on_tempBox_valueChanged(int arg1)
 {
     temp=arg1;
+}
+
+void MainWindow::on_flashSpdBox_valueChanged(int arg1)
+{
+    flashSpeed=arg1;
 }

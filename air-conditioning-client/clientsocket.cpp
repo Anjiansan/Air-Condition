@@ -38,7 +38,7 @@ void ClientSocket::receiveData()
         {
             bool is_valid=parse_document.object().value("is_valid").toBool();
             double power=parse_document.object().value("power").toDouble();
-            double money=parse_document.object().value("money").toDouble();
+            double money=parse_document.object().value("cost").toDouble();
 
             emit updateUI(is_valid,power,money);
         }

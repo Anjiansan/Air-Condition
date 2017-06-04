@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network
+QT       += core gui network sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -16,12 +16,14 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     serversocket.cpp \
     clientconn.cpp \
-    socketthread.cpp
+    socketthread.cpp \
+    dbmanager.cpp
 
 HEADERS  += mainwindow.h \
     protocol.h \
     serversocket.h \
     clientconn.h \
-    socketthread.h
+    socketthread.h \
+    dbmanager.h
 
 FORMS    += mainwindow.ui
