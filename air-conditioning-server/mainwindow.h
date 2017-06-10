@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QTreeWidget>
 #include <QtNetwork>
+#include <QCloseEvent>
 
 class ServerSocket;
 #include "serversocket.h"
@@ -42,6 +43,8 @@ public:
 
     int getFlashSpeed();
 
+    int getStatus();
+
     DBManager *getDBManager();
 
 private slots:
@@ -63,9 +66,22 @@ private slots:
 
     void on_flashSpdBox_valueChanged(int arg1);
 
+    void on_turnOnBtn_clicked();
+
+    void on_turnOffBtn_clicked();
+
+    void closeEvent(QCloseEvent *event);
+
+    void on_dayReport_clicked();
+
+    void on_weekReport_clicked();
+
+    void on_monthReport_clicked();
+
 private:
     Ui::MainWindow *ui;
 
+    bool isRun; //是否已运行
     bool isHeatMode;    //工作模式
     int temp;   //温度
     int flashSpeed; //刷新频率

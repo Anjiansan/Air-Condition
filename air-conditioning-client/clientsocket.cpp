@@ -6,6 +6,7 @@ ClientSocket::ClientSocket(QWidget *parent)
     client->connectToHost(QHostAddress("127.0.0.1"),2222);
 
     connect(client,SIGNAL(readyRead()),this,SLOT(receiveData()));
+    connect(this->client,SIGNAL(error(QAbstractSocket::SocketError)),this,SLOT(serverError(QAbstractSocket::SocketError)));
 }
 
 ClientSocket::~ClientSocket()
@@ -25,10 +26,13 @@ void ClientSocket::receiveData()
     if(err.error==QJsonParseError::NoError)
     {
         int ret=parse_document.object().value("ret").toInt();
-//        qDebug()<<ret;4
         if(ret==LOG_IN_SUCC)
         {
+            bool mode=parse_document.object().value("is_heat_mode").toBool();
+            int temp=parse_document.object().value("default").toInt();
+
             emit loginSignal(true);
+            emit updateMain(mode,temp); //通知更新界面
         }
         else if(ret==LOG_IN_FAIL)
         {
@@ -39,8 +43,9 @@ void ClientSocket::receiveData()
             bool is_valid=parse_document.object().value("is_valid").toBool();
             double power=parse_document.object().value("power").toDouble();
             double money=parse_document.object().value("cost").toDouble();
+            int frequence=parse_document.object().value("frequence").toInt();
 
-            emit updateUI(is_valid,power,money);
+            emit updateUI(is_valid,power,money,frequence);
         }
     }
 
@@ -48,6 +53,11 @@ void ClientSocket::receiveData()
     {
         emit client->readyRead();
     }
+}
+
+void ClientSocket::serverError(QAbstractSocket::SocketError error)
+{
+    emit errorOccure();
 }
 
 void ClientSocket::login(int room_id, QString user_id)

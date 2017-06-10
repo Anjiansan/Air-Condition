@@ -44,13 +44,12 @@ void ClientConn::sendData(QJsonDocument document)
 bool ClientConn::isReqValid(bool isHeatMode, int setTem, int realTem)
 {
     bool mode=mainWindow->getMode();    //主控机模式
-    int temp=mainWindow->getTemp(); //  主机温度
 
     if(mode==isHeatMode)
     {
         if(isHeatMode)  //制暖
         {
-            if(realTem<setTem && realTem<temp)
+            if(realTem<setTem)
             {
                 return true;
             }
@@ -61,7 +60,7 @@ bool ClientConn::isReqValid(bool isHeatMode, int setTem, int realTem)
         }
         else    //制冷
         {
-            if(realTem>setTem && realTem>temp)
+            if(realTem>setTem)
             {
                 return true;
             }
@@ -79,22 +78,26 @@ bool ClientConn::isReqValid(bool isHeatMode, int setTem, int realTem)
 
 void ClientConn::receiveData()
 {
+    bool isRun=mainWindow->getStatus();
     char data[512];
     this->read(data,512);
 
-    QDateTime timeNow=QDateTime::currentDateTime();//获取系统现在的时间
-    QString str = timeNow.toString("hh:mm:ss"); //设置显示格式
-    qDebug()<<str<<data;
-
-//    qDebug()<<data;
-    QJsonParseError err;
-    QJsonDocument parse_document = QJsonDocument::fromJson(data,&err);
-    if(err.error==QJsonParseError::NoError)
+    if(isRun)
     {
-        handleRqt(parse_document);
-    }
+        QDateTime timeNow=QDateTime::currentDateTime();//获取系统现在的时间
+        QString str = timeNow.toString("hh:mm:ss"); //设置显示格式
+        qDebug()<<str<<data;
 
-//    qDebug()<<this->bytesAvailable();
+    //    qDebug()<<data;
+        QJsonParseError err;
+        QJsonDocument parse_document = QJsonDocument::fromJson(data,&err);
+        if(err.error==QJsonParseError::NoError)
+        {
+            handleRqt(parse_document);
+        }
+
+    }
+    //    qDebug()<<this->bytesAvailable();
     if(this->bytesAvailable()>0)
     {
         emit this->readyRead();
@@ -111,7 +114,7 @@ void ClientConn::handleRqt(QJsonDocument parse_document)
         QString user_id=parse_document.object().value("user_id").toString();
 
         ClientConn::mutex.lock();   //加锁
-        ClientConn::query.append(this->room_id);
+        ClientConn::query.append(room_id);
 
         bool isDeal=false;
         if(ClientConn::query.size()<3)  //可以处理
@@ -122,9 +125,13 @@ void ClientConn::handleRqt(QJsonDocument parse_document)
         if(isDeal)  //可以处理
         {
             QMap<int,QString> rooms=this->mainWindow->getRooms();
+            bool mode=mainWindow->getMode();
+            int temp=mainWindow->getTemp();
             if(rooms.contains(room_id)&&rooms[room_id]==user_id)
             {
                 json.insert("ret", LOG_IN_SUCC);
+                json.insert("is_heat_mode", mode);
+                json.insert("default", temp);
                 this->room_id=room_id;  //记住room_id
                 dbData.room_id=this->room_id;
                 dbData.user_id=user_id;
@@ -175,11 +182,15 @@ void ClientConn::handleRqt(QJsonDocument parse_document)
                 }
 
                 emit clientOfflined(this->room_id);
-//                this->thread()->quit();
+                ClientConn::mutex.lock();   //加锁
+                ClientConn::query.remove(ClientConn::query.indexOf(this->room_id));
+                ClientConn::mutex.unlock(); //解锁
+                this->thread()->quit();
             }
             else
             {
                 lastStatus=true;    //开机
+                bool isFinish=false;
 
                 bool isValid=isReqValid(is_heat_mode,set_tem,real_tem);
                 if(isReqFinish && isValid) //新请求
@@ -197,34 +208,39 @@ void ClientConn::handleRqt(QJsonDocument parse_document)
                 if(!isReqFinish && dbData.end_temp==set_tem && real_tem==set_tem) //本次请求完成
                 {
                     isReqFinish=true;
+                    isFinish=true;
 
                     QTime time = QTime::currentTime();//获取系统现在的时间
                     dbData.end_time=time.toString("hh:mm:ss");
                     QTime t=QTime::fromString(dbData.start_time,"hh:mm:ss");
                     double minite=t.msecsTo(time)/1000.0/60.0;
-                    qDebug()<<t.msecsTo(time);
+//                    qDebug()<<t.msecsTo(time);
                     dbData.power=minite*timeToPower[dbData.speed-1];
-                    qDebug()<<dbData.power;
+//                    qDebug()<<dbData.power;
                     dbData.fee=dbData.power*5;
                     dbData.total_fee+=dbData.fee;
                     dbData.total_power+=dbData.power;
+                    dbData.isOneReq=1;
 
                     DBManager *db=mainWindow->getDBManager();   //写入数据库
                     db->insertData(dbData);
-                    qDebug()<<"insert";
+//                    qDebug()<<"insert";
                 }
 
-                if(!isReqFinish && isValid && dbData.end_temp!=set_tem) //本次请求未完成更改请求
+                if(!isReqFinish && isValid && dbData.start_temp!=real_tem && dbData.end_temp!=set_tem) //本次请求未完成更改请求
                 {
+                    isFinish=true;
+
                     QTime time = QTime::currentTime();//获取系统现在的时间
                     dbData.end_time=time.toString("hh:mm:ss");
                     QTime t=QTime::fromString(dbData.start_time,"hh:mm:ss");
-                    double minite=t.msecsTo(time)/1000/60;
+                    double minite=t.msecsTo(time)/1000.0/60.0;
                     dbData.power=minite*timeToPower[dbData.speed-1];
                     dbData.fee=dbData.power*5;
                     dbData.total_fee+=dbData.fee;
                     dbData.total_power+=dbData.power;
                     dbData.end_temp=real_tem;
+                    dbData.isOneReq=1;
 
                     DBManager *db=mainWindow->getDBManager();   //写入数据库
                     db->insertData(dbData);
@@ -237,18 +253,42 @@ void ClientConn::handleRqt(QJsonDocument parse_document)
                     dbData.switch_num=switch_num;
                 }
 
+                if(!isFinish && isValid && real_tem!=dbData.start_temp)   //实时记录,防止主机突然出错,未写入数据库
+                {
+                    QTime time = QTime::currentTime();//获取系统现在的时间
+                    dbData.end_time=time.toString("hh:mm:ss");
+                    QTime t=QTime::fromString(dbData.start_time,"hh:mm:ss");
+                    double minite=t.msecsTo(time)/1000.0/60.0;
+                    dbData.power=minite*timeToPower[dbData.speed-1];
+                    dbData.fee=dbData.power*5;
+                    dbData.total_fee+=dbData.fee;
+                    dbData.total_power+=dbData.power;
+                    dbData.isOneReq=0;
+                    qDebug()<<dbData.power<<dbData.fee;
+
+                    DBManager *db=mainWindow->getDBManager();   //写入数据库
+                    db->insertData(dbData);
+                }
+
                 emit updateData(room_id,is_heat_mode,set_tem,real_tem,speed);   //更新客户端数据
 
+                int frequence=mainWindow->getFlashSpeed();
                 QJsonObject json;
                 json.insert("ret", REPLY_CON);
                 json.insert("is_valid", isValid);
                 json.insert("cost", dbData.total_fee);
                 json.insert("power",dbData.total_power);
+                json.insert("frequence",frequence);
                 QJsonDocument document;
                 document.setObject(json);
 
                 sendData(document);
 
+                if(!isFinish && isValid && real_tem!=dbData.start_temp)
+                {
+                    dbData.total_fee-=dbData.fee;
+                    dbData.total_power-=dbData.power;
+                }
             }
         }
         else

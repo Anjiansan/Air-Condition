@@ -24,6 +24,7 @@ public:
     double total_fee;   //费用
     double power;       //功率(每次)
     double total_power; //总功率
+    int isOneReq;   //是否是一次完整的请求
 };
 
 class ClientConn : public QTcpSocket

@@ -7,9 +7,9 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     Login login;
+    MainWindow w(0,login.client);
     if(login.exec()==QDialog::Accepted)
     {
-        MainWindow w(0,login.client);
         w.show();
         return a.exec();
     }

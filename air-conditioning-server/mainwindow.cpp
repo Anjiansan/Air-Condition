@@ -9,11 +9,18 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    isRun=false;
     this->isHeatMode=false; //制冷模式
     ui->coldModeBtn->setEnabled(false);
     temp=22;    //制冷默认温度
     ui->tempBox->setValue(22);
     ui->tempBox->setRange(18,25);
+
+    ui->turnOnBtn->setEnabled(true);
+    ui->turnOffBtn->setEnabled(false);
+    ui->heatModeBtn->setEnabled(false);
+    ui->coldModeBtn->setEnabled(false);
+    ui->addRoomBtn->setEnabled(false);
 
     flashSpeed=2000;    //默认刷新频率
     ui->flashSpdBox->setRange(1000,1000000);
@@ -23,6 +30,10 @@ MainWindow::MainWindow(QWidget *parent) :
     server->listen(QHostAddress::AnyIPv4,2222);
 
     rooms.insert(0,"0");
+    rooms.insert(1,"1");
+    ui->roomNum->addItem("0");
+    ui->roomNum->addItem("1");
+    ui->roomNum->setCurrentIndex(0);
 
     dbManage=new DBManager();
 
@@ -68,6 +79,11 @@ int MainWindow::getTemp()
 int MainWindow::getFlashSpeed()
 {
     return flashSpeed;
+}
+
+int MainWindow::getStatus()
+{
+    return isRun;
 }
 
 DBManager *MainWindow::getDBManager()
@@ -167,4 +183,47 @@ void MainWindow::on_tempBox_valueChanged(int arg1)
 void MainWindow::on_flashSpdBox_valueChanged(int arg1)
 {
     flashSpeed=arg1;
+}
+
+void MainWindow::on_turnOnBtn_clicked()
+{
+    isRun=true;
+
+    ui->turnOnBtn->setEnabled(false);
+    ui->turnOffBtn->setEnabled(true);
+    ui->heatModeBtn->setEnabled(true);
+    ui->coldModeBtn->setEnabled(true);
+    ui->addRoomBtn->setEnabled(true);
+}
+
+void MainWindow::on_turnOffBtn_clicked()
+{
+    isRun=false;
+
+    ui->turnOnBtn->setEnabled(true);
+    ui->turnOffBtn->setEnabled(false);
+    ui->heatModeBtn->setEnabled(false);
+    ui->coldModeBtn->setEnabled(false);
+    ui->addRoomBtn->setEnabled(false);
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    this->server->disconnect();
+    event->accept();
+}
+
+void MainWindow::on_dayReport_clicked()
+{
+    dbManage->genDayReport(ui->roomNum->currentText().toInt());
+}
+
+void MainWindow::on_weekReport_clicked()
+{
+
+}
+
+void MainWindow::on_monthReport_clicked()
+{
+
 }

@@ -44,7 +44,8 @@ bool DBManager::createTable()   //创建表
                         "fee float(6,2),"
                         "total_fee float(6,2),"
                         "power float(6,2),"
-                        "total_power float(6,2));");
+                        "total_power float(6,2),"
+                        "isOneReq int);");
 
     return query.exec (sqlString);
 }
@@ -57,10 +58,11 @@ bool DBManager::insertData(DBData data)
     QString day = time.toString("d");
 
     QSqlQuery query;
-    QString sqlString=QObject::tr("insert into airCondition values(%1,\"%2\",%3,%4,%5,%6,\"%7\",\"%8\",%9,%10,%11,%12,%13,%14,%15);").
+    QString sqlString=QObject::tr("insert into airCondition values(%1,\"%2\",%3,%4,%5,%6,\"%7\",\"%8\",%9,%10,%11,%12,%13,%14,%15,%16);").
             arg (data.room_id).arg (data.user_id).arg (data.switch_num).arg (month).arg (week).arg (day).
             arg (data.start_time).arg (data.end_time).arg (data.start_temp).arg (data.end_temp).
-            arg (data.speed).arg (data.fee).arg (data.total_fee).arg (data.power).arg (data.total_power);
+            arg (data.speed).arg (data.fee).arg (data.total_fee).arg (data.power).
+            arg (data.total_power).arg (data.isOneReq);
 
     qDebug()<<sqlString;
     return query.exec (sqlString);
@@ -101,5 +103,29 @@ double DBManager::getTotalPower(int room_id, QString user_id)
         query.last();
         return query.value("total_power").toDouble();
     }
+}
+
+bool DBManager::genDayReport(int room_id)
+{
+    QSqlQuery query;
+    QString sqlString=QObject::tr("select * from airCondition where room_id=%1 and isOneReq=1;").
+            arg(room_id);
+    query.exec (sqlString);
+
+    std::ofstream out("日报表.txt");
+    out<<"房间号\t"<<"开关机的次数\t"<<"温控请求起止时间\t"<<"温控请求起止温度\t"
+      <<"风量大小\t"<<"温控请求所需费用\t"<<"总费用"<<std::endl;
+    while(query.next())
+    {
+        out<<query.value(0).toString().toStdString()<<"\t"<<query.value(2).toString().toStdString()
+          <<"\t"<<query.value(6).toString().toStdString()<<"~"<<query.value(7).toString().toStdString()
+          <<"\t"<<query.value(8).toString().toStdString()<<"~"<<query.value(9).toString().toStdString()
+          <<"\t"<<query.value(10).toString().toStdString()<<"\t"<<query.value(11).toString().toStdString()
+          <<"\t"<<query.value(12).toString().toStdString()<<std::endl;
+    }
+
+    out.close();
+
+    return true;
 }
 

@@ -7,6 +7,7 @@ MainWindow::MainWindow(QWidget *parent, ClientSocket *client) :
 {
     ui->setupUi(this);
 
+    isRun=false;
     isHeatMode=false;   //开始初始值
     realTem=22;
     setTem=22;
@@ -25,7 +26,9 @@ MainWindow::MainWindow(QWidget *parent, ClientSocket *client) :
     ui->heatModeBtn->setEnabled(false);
 
     this->client=client;
-    connect(this->client,SIGNAL(updateUI(bool,double,double)),this,SLOT(updateUISlot(bool,double,double)));
+    connect(this->client,SIGNAL(updateMain(bool,int)),this,SLOT(updateMainSlot(bool,int)));
+    connect(this->client,SIGNAL(updateUI(bool,double,double,int)),this,SLOT(updateUISlot(bool,double,double,int)));
+    connect(this->client,SIGNAL(errorOccure()),this,SLOT(errorOccureSLOT()));
 
     this->workTimer=new QTimer(this);
     connect(this->workTimer,SIGNAL(timeout()),this,SLOT(updateRealTem()));
@@ -35,6 +38,11 @@ MainWindow::MainWindow(QWidget *parent, ClientSocket *client) :
 
     this->sendTimer=new QTimer(this);
     connect(this->sendTimer,SIGNAL(timeout()),this,SLOT(sendReqPeriod()));
+
+    this->riseTemTimer=new QTimer(this);
+    this->reduceTemTimer=new QTimer(this);
+    connect(this->riseTemTimer,SIGNAL(timeout()),this,SLOT(sendRiseTemReq()));
+    connect(this->reduceTemTimer,SIGNAL(timeout()),this,SLOT(sendReduceTemReq()));
 }
 
 MainWindow::~MainWindow()
@@ -43,8 +51,23 @@ MainWindow::~MainWindow()
     delete client;
 }
 
+void MainWindow::updateMainSlot(bool mode, int temp)
+{
+    if(mode)
+    {
+        ui->mainMode->setText("制暖");
+    }
+    else
+    {
+        ui->mainMode->setText("制冷");
+    }
+    ui->realTemNum->display(temp);
+}
+
 void MainWindow::on_turnOnBtn_clicked()
 {
+    isRun=true;
+
     ui->turnOnBtn->setEnabled(false);   //初始化界面
     ui->exitBtn->setEnabled(true);
     ui->riseTem->setEnabled(true);
@@ -53,69 +76,110 @@ void MainWindow::on_turnOnBtn_clicked()
     ui->reduceSpeed->setEnabled(true);
     ui->heatModeBtn->setEnabled(true);
 
-    ui->realTemNum->display(realTem);
+//    ui->realTemNum->display(realTem);
     ui->setTemNum->display(setTem);
     ui->speedNum->display(speed);
     ui->mode->setText("制冷");
     outDoorTem=30;  //制冷模式室外温度默认30度
+    ui->outDoorTemp->display(outDoorTem);
 
-    this->sendTimer->start(2000);
+//    this->sendTimer->start(2000);
     this->client->sendReq(true,isHeatMode,realTem,setTem,speed);
 }
 
 void MainWindow::updateRealTem()
 {
-    if(this->isHeatMode)    //制暖
+    if(isRun)
     {
-        this->realTem++;
-    }
-    else    //制冷
-    {
-        this->realTem--;
-    }
+        if(this->isHeatMode)    //制暖
+        {
+            this->realTem++;
+        }
+        else    //制冷
+        {
+            this->realTem--;
+        }
 
-    if(this->realTem==this->setTem) //达到请求温度值
-    {
-        client->sendReq(true,isHeatMode,setTem,realTem,speed);  //发送请求
-    }
+        if(this->realTem==this->setTem) //达到请求温度值
+        {
+            client->sendReq(true,isHeatMode,setTem,realTem,speed);  //发送请求
+        }
 
-    ui->realTemNum->display(this->realTem);
+        ui->realTemNum->display(this->realTem);
+    }
 }
 
 void MainWindow::naturalUpdateTem()
 {
-    if(this->isHeatMode)    //制暖
+    if(isRun)
     {
-        this->realTem--;
-
-        if(this->realTem<outDoorTem)    //最低温度为室外温度
+        if(this->isHeatMode)    //制暖
         {
-            this->realTem=outDoorTem;
-        }
-        client->sendReq(true,isHeatMode,setTem,realTem,speed);  //温差超过一度发送请求
-    }
-    else    //制冷
-    {
-        this->realTem++;
+            this->realTem--;
 
-        if(this->realTem>outDoorTem)    //最高温度为室外温度
+            if(this->realTem<outDoorTem)    //最低温度为室外温度
+            {
+                this->realTem=outDoorTem;
+            }
+            client->sendReq(true,isHeatMode,setTem,realTem,speed);  //温差超过一度发送请求
+        }
+        else    //制冷
         {
-            this->realTem=outDoorTem;
-        }
-        client->sendReq(true,isHeatMode,setTem,realTem,speed);  //温差超过一度发送请求
-    }
+            this->realTem++;
 
-    ui->realTemNum->display(this->realTem);
+            if(this->realTem>outDoorTem)    //最高温度为室外温度
+            {
+                this->realTem=outDoorTem;
+            }
+            client->sendReq(true,isHeatMode,setTem,realTem,speed);  //温差超过一度发送请求
+        }
+
+        ui->realTemNum->display(this->realTem);
+    }
 }
 
 void MainWindow::sendReqPeriod()
 {
-    client->sendReq(true,isHeatMode,setTem,realTem,speed);
+    if(isRun)
+        client->sendReq(true,isHeatMode,setTem,realTem,speed);
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    client->sendReq(false,isHeatMode,setTem,realTem,speed);
+    event->accept();
+}
+
+void MainWindow::errorOccureSLOT()
+{
+    QMessageBox::warning(this,tr("发生网络错误"),tr("请关闭重启"),QMessageBox::Yes);
+    sendTimer->stop();
+    workTimer->stop();
+    naturalTimer->start(3000);
+}
+
+void MainWindow::sendRiseTemReq()
+{
+    if(isRun)
+        client->sendReq(true,isHeatMode,setTem,realTem,speed);
+
+    riseTemTimer->stop();
+    qDebug()<<"stop";
+}
+
+void MainWindow::sendReduceTemReq()
+{
+    if(isRun)
+        client->sendReq(true,isHeatMode,setTem,realTem,speed);
+
+    reduceTemTimer->stop();
 }
 
 void MainWindow::on_exitBtn_clicked()
 {
-    client->sendReq(false,false,22,22,2);
+    isRun=false;
+
+    client->sendReq(true,isHeatMode,setTem,realTem,speed);
     ui->turnOnBtn->setEnabled(true);
     ui->exitBtn->setEnabled(false);
     ui->riseTem->setEnabled(false);
@@ -130,37 +194,48 @@ void MainWindow::on_exitBtn_clicked()
 //    this->close();
 }
 
-void MainWindow::updateUISlot(bool is_valid, double power, double money)
+void MainWindow::updateUISlot(bool is_valid, double power, double money,int frequence)
 {
-    ui->power->setText(QString::number(power,10,2));
-    ui->money->setText(QString::number(money,10,2));
-
-//    QDateTime timeNow=QDateTime::currentDateTime();//获取系统现在的时间
-//    QString str = timeNow.toString("hh:mm:ss"); //设置显示格式
-//    qDebug()<<str<<is_valid;
-
-    if(is_valid)
+    if(isRun)
     {
-        if(this->naturalTimer->isActive())  //关闭温度自然变化定时器
+        ui->power->setText(QString::number(power,10,2));
+        ui->money->setText(QString::number(money,10,2));
+        if(!this->sendTimer->isActive())
+            this->sendTimer->start(frequence);    //定时发送状态
+        else if(this->frequence!=frequence)
         {
-            this->naturalTimer->stop();
+            this->sendTimer->stop();
+            this->sendTimer->start(frequence);    //定时发送状态
         }
+        this->frequence=frequence;
 
-        if(!this->workTimer->isActive())
-        {
-            this->workTimer->start(speedToTime[speed-1]);
-        }
-    }
-    else
-    {
-        if(this->workTimer->isActive())  //关闭空调工作定时器
-        {
-            this->workTimer->stop();
-        }
+    //    QDateTime timeNow=QDateTime::currentDateTime();//获取系统现在的时间
+    //    QString str = timeNow.toString("hh:mm:ss"); //设置显示格式
+    //    qDebug()<<str<<is_valid;
 
-        if(!this->naturalTimer->isActive())  //开启温度自然变化定时器
+        if(is_valid)
         {
-            this->naturalTimer->start(3000);
+            if(this->naturalTimer->isActive())  //关闭温度自然变化定时器
+            {
+                this->naturalTimer->stop();
+            }
+
+            if(!this->workTimer->isActive())
+            {
+                this->workTimer->start(speedToTime[speed-1]);
+            }
+        }
+        else
+        {
+            if(this->workTimer->isActive())  //关闭空调工作定时器
+            {
+                this->workTimer->stop();
+            }
+
+            if(!this->naturalTimer->isActive())  //开启温度自然变化定时器
+            {
+                this->naturalTimer->start(3000);
+            }
         }
     }
 }
@@ -168,15 +243,47 @@ void MainWindow::updateUISlot(bool is_valid, double power, double money)
 void MainWindow::on_riseTem_clicked()
 {
     this->setTem++;
+
+    if(isHeatMode && setTem>=30)
+    {
+        ui->riseTem->setEnabled(false);
+    }
+    if(!isHeatMode && setTem>=25)
+    {
+        ui->riseTem->setEnabled(false);
+    }
+
     ui->setTemNum->display(setTem);
-    this->client->sendReq(true,isHeatMode,setTem,realTem,speed);
+
+    if(riseTemTimer->isActive())
+    {
+        riseTemTimer->stop();
+    }
+    riseTemTimer->start(1000);
+//    this->client->sendReq(true,isHeatMode,setTem,realTem,speed);
 }
 
 void MainWindow::on_reduceTem_clicked()
 {
     this->setTem--;
+
+    if(isHeatMode && setTem<=25)
+    {
+        ui->reduceTem->setEnabled(false);
+    }
+    if(!isHeatMode && setTem<=18)
+    {
+        ui->reduceTem->setEnabled(false);
+    }
+
     ui->setTemNum->display(setTem);
-    this->client->sendReq(true,isHeatMode,setTem,realTem,speed);
+
+    if(reduceTemTimer->isActive())
+    {
+        reduceTemTimer->stop();
+    }
+    reduceTemTimer->start(1000);
+//    this->client->sendReq(true,isHeatMode,setTem,realTem,speed);
 }
 
 void MainWindow::on_riseSpeed_clicked()
@@ -208,6 +315,7 @@ void MainWindow::on_coldModeBtn_clicked()
     this->isHeatMode=false;
     ui->mode->setText("制冷");
     outDoorTem=30;  //制冷模式室外温度默认30度
+    ui->outDoorTemp->display(outDoorTem);
     ui->heatModeBtn->setEnabled(true);
     ui->coldModeBtn->setEnabled(false);
     this->client->sendReq(true,isHeatMode,setTem,realTem,speed);
@@ -218,6 +326,7 @@ void MainWindow::on_heatModeBtn_clicked()
     this->isHeatMode=true;
     ui->mode->setText("制暖");
     outDoorTem=10;  //制暖模式室外温度默认10度
+    ui->outDoorTemp->display(outDoorTem);
     ui->coldModeBtn->setEnabled(true);
     ui->heatModeBtn->setEnabled(false);
     this->client->sendReq(true,isHeatMode,setTem,realTem,speed);

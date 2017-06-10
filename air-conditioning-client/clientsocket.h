@@ -19,10 +19,16 @@ public:
 signals:
     void loginSignal(bool);
 
-    void updateUI(bool,double,double);
+    void updateMain(bool,int);
+
+    void updateUI(bool,double,double,int);
+
+    void errorOccure();
 
 private slots:
     void receiveData(void);
+
+    void serverError(QAbstractSocket::SocketError error);
 
 private:
     QTcpSocket *client;

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>568</width>
-    <height>350</height>
+    <width>575</width>
+    <height>430</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <widget class="QPushButton" name="addRoomBtn">
     <property name="geometry">
      <rect>
-      <x>260</x>
+      <x>220</x>
       <y>30</y>
       <width>98</width>
       <height>24</height>
@@ -56,7 +56,7 @@
    <widget class="QLineEdit" name="roomText">
     <property name="geometry">
      <rect>
-      <x>130</x>
+      <x>100</x>
       <y>10</y>
       <width>113</width>
       <height>25</height>
@@ -66,7 +66,7 @@
    <widget class="QLineEdit" name="pwdText">
     <property name="geometry">
      <rect>
-      <x>130</x>
+      <x>100</x>
       <y>50</y>
       <width>113</width>
       <height>25</height>
@@ -80,9 +80,9 @@
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>80</y>
-      <width>256</width>
-      <height>192</height>
+      <y>100</y>
+      <width>221</width>
+      <height>241</height>
      </rect>
     </property>
     <column>
@@ -94,8 +94,8 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>370</x>
-      <y>150</y>
+      <x>350</x>
+      <y>250</y>
       <width>83</width>
       <height>49</height>
      </rect>
@@ -123,8 +123,8 @@
    <widget class="QWidget" name="layoutWidget_2">
     <property name="geometry">
      <rect>
-      <x>470</x>
-      <y>220</y>
+      <x>450</x>
+      <y>310</y>
       <width>83</width>
       <height>45</height>
      </rect>
@@ -149,8 +149,8 @@
    <widget class="QWidget" name="layoutWidget_3">
     <property name="geometry">
      <rect>
-      <x>470</x>
-      <y>150</y>
+      <x>450</x>
+      <y>250</y>
       <width>83</width>
       <height>49</height>
      </rect>
@@ -178,8 +178,8 @@
    <widget class="QWidget" name="layoutWidget_4">
     <property name="geometry">
      <rect>
-      <x>270</x>
-      <y>220</y>
+      <x>250</x>
+      <y>310</y>
       <width>83</width>
       <height>45</height>
      </rect>
@@ -204,8 +204,8 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>270</x>
-      <y>150</y>
+      <x>250</x>
+      <y>250</y>
       <width>83</width>
       <height>49</height>
      </rect>
@@ -233,8 +233,8 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>370</x>
-      <y>220</y>
+      <x>350</x>
+      <y>310</y>
       <width>83</width>
       <height>45</height>
      </rect>
@@ -259,7 +259,7 @@
    <widget class="QPushButton" name="heatModeBtn">
     <property name="geometry">
      <rect>
-      <x>380</x>
+      <x>440</x>
       <y>10</y>
       <width>98</width>
       <height>24</height>
@@ -272,7 +272,7 @@
    <widget class="QPushButton" name="coldModeBtn">
     <property name="geometry">
      <rect>
-      <x>380</x>
+      <x>440</x>
       <y>50</y>
       <width>98</width>
       <height>24</height>
@@ -285,8 +285,8 @@
    <widget class="QWidget" name="layoutWidget_5">
     <property name="geometry">
      <rect>
-      <x>280</x>
-      <y>90</y>
+      <x>270</x>
+      <y>180</y>
       <width>98</width>
       <height>52</height>
      </rect>
@@ -307,8 +307,8 @@
    <widget class="QWidget" name="layoutWidget_6">
     <property name="geometry">
      <rect>
-      <x>430</x>
-      <y>90</y>
+      <x>420</x>
+      <y>180</y>
       <width>98</width>
       <height>52</height>
      </rect>
@@ -326,13 +326,100 @@
      </item>
     </layout>
    </widget>
+   <widget class="QPushButton" name="turnOnBtn">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>10</y>
+      <width>98</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>开</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="turnOffBtn">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>50</y>
+      <width>98</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>关</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="dayReport">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>80</y>
+      <width>98</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>日报表</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="weekReport">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>110</y>
+      <width>98</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>周报表</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="monthReport">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>140</y>
+      <width>98</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>月报表</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>90</y>
+      <width>95</width>
+      <height>50</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_9">
+     <item>
+      <widget class="QLabel" name="roomNumLab">
+       <property name="text">
+        <string>房间号</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="roomNum"/>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>568</width>
+     <width>575</width>
      <height>23</height>
     </rect>
    </property>
