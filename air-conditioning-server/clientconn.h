@@ -14,7 +14,7 @@ class DBData
 public:
     int room_id;    //房间号
     QString user_id;    //密码
-    int switch_num; //开关机次数(每日)
+    int switch_num; //开关机次数
     QString start_time; //开始时间
     QString end_time;   //结束时间
     int start_temp;     //起始温度
@@ -39,7 +39,7 @@ signals:
 
     void clientOfflined(int);
 
-    void updateData(int,bool,int,int,int);
+    void updateData(int,bool,int,int,int,double,double);
 
 public slots:
     void receiveData(void);
@@ -49,6 +49,8 @@ public slots:
     void sendData(QJsonDocument document);
 
     bool isReqValid(bool isHeatMode,int setTem,int realTem);
+
+    void clientDisconnect();
 
 private:
     MainWindow *mainWindow;

@@ -147,6 +147,7 @@ void MainWindow::sendReqPeriod()
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     client->sendReq(false,isHeatMode,setTem,realTem,speed);
+    client->disconnect();
     event->accept();
 }
 
@@ -179,7 +180,7 @@ void MainWindow::on_exitBtn_clicked()
 {
     isRun=false;
 
-    client->sendReq(true,isHeatMode,setTem,realTem,speed);
+    client->sendReq(false,isHeatMode,setTem,realTem,speed);
     ui->turnOnBtn->setEnabled(true);
     ui->exitBtn->setEnabled(false);
     ui->riseTem->setEnabled(false);

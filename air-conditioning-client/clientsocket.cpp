@@ -3,10 +3,9 @@
 ClientSocket::ClientSocket(QWidget *parent)
 {
     client=new QTcpSocket(this);
-    client->connectToHost(QHostAddress("127.0.0.1"),2222);
 
     connect(client,SIGNAL(readyRead()),this,SLOT(receiveData()));
-    connect(this->client,SIGNAL(error(QAbstractSocket::SocketError)),this,SLOT(serverError(QAbstractSocket::SocketError)));
+    connect(this->client,SIGNAL(disconnected()),this,SLOT(serverError()));
 }
 
 ClientSocket::~ClientSocket()
@@ -55,7 +54,7 @@ void ClientSocket::receiveData()
     }
 }
 
-void ClientSocket::serverError(QAbstractSocket::SocketError error)
+void ClientSocket::serverError()
 {
     emit errorOccure();
 }
@@ -94,4 +93,13 @@ void ClientSocket::sendReq(bool in_on, bool is_heat_mode, int set_temp, int real
     QDateTime timeNow=QDateTime::currentDateTime();//获取系统现在的时间
     QString str = timeNow.toString("hh:mm:ss"); //设置显示格式
     qDebug()<<str<<data;
+}
+
+void ClientSocket::connectServer()
+{
+    client->connectToHost(QHostAddress("127.0.0.1"),2222);
+    if(!client->waitForConnected(2000))
+    {
+        emit connectError();
+    }
 }

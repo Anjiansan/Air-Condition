@@ -47,6 +47,8 @@ public:
 
     DBManager *getDBManager();
 
+    bool isLoginValid(int room_id);
+
 private slots:
     void showClientState(QTreeWidgetItem* item,int column);
 
@@ -54,7 +56,7 @@ private slots:
 
     void clientOfflinedSlot(int room_id);
 
-    void updateDataSlot(int room_id,bool is_heat_mode,int setTem,int realTem,int speed);
+    void updateDataSlot(int room_id,bool is_heat_mode,int setTem,int realTem,int speed,double money,double power);
 
     void on_addRoomBtn_clicked();
 

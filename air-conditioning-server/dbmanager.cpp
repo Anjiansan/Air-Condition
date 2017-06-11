@@ -68,6 +68,23 @@ bool DBManager::insertData(DBData data)
     return query.exec (sqlString);
 }
 
+int DBManager::getSwitchNum(int room_id, QString user_id)
+{
+    QSqlQuery query;
+    QString sqlString=QObject::tr("select max(switch_num) from airCondition where room_id=%1 and user_id=\"%2\";").
+            arg(room_id).arg(user_id);
+    query.exec (sqlString);
+
+    if(!query.next ())//数据库不存在此用户
+    {
+        return 0;
+    }
+    else
+    {
+        return query.value("switch_num").toInt();
+    }
+}
+
 double DBManager::getTotalFee(int room_id, QString user_id)
 {
     QSqlQuery query;
@@ -184,5 +201,23 @@ bool DBManager::genMonthReport(int room_id, int month)
     out.close();
 
     return true;
+}
+
+void DBManager::updateSwitchNum(int room_id, QString user_id, int switch_num)
+{
+    QSqlQuery query;
+    QString sqlString=QObject::tr("select * from airCondition where room_id=%1 and user_id=\"%2\";").
+            arg(room_id).arg(user_id);
+    query.exec (sqlString);
+
+    if(query.next () && query.value("switch_num").toInt()!=switch_num)
+    {
+        query.last();   //更新最后一个记录
+        QString sqlString=QObject::tr("update airCondition set switch_num=%1 where room_id=%2 and "
+                                      "user_id=\"%3\" and total_fee=%4 and total_power=%5").
+                arg (switch_num).arg(room_id).arg(user_id).arg (query.value("total_fee").toDouble())
+                .arg (query.value("total_power").toDouble());
+        query.exec (sqlString);
+    }
 }
 

@@ -20,7 +20,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->turnOffBtn->setEnabled(false);
     ui->heatModeBtn->setEnabled(false);
     ui->coldModeBtn->setEnabled(false);
-    ui->addRoomBtn->setEnabled(false);
+//    ui->addRoomBtn->setEnabled(false);
 
     flashSpeed=2000;    //默认刷新频率
     ui->flashSpdBox->setRange(1000,1000000);
@@ -91,6 +91,14 @@ DBManager *MainWindow::getDBManager()
     return dbManage;
 }
 
+bool MainWindow::isLoginValid(int room_id)
+{
+    if(clientsData.keys().contains(room_id))
+        return false;
+    else
+        return true;
+}
+
 void MainWindow::showClientState(QTreeWidgetItem *item, int column)
 {
     QTreeWidgetItem *parent = item->parent();
@@ -116,8 +124,13 @@ void MainWindow::showClientState(QTreeWidgetItem *item, int column)
 void MainWindow::clientLoginedSlot(int room_id)
 {
     new QTreeWidgetItem(loginedWidget, QStringList(QString::number(room_id)));
-
+    ui->treeWidget->expandAll();
     clientsData.insert(room_id,new ClientData{false,false,0,0,0,0.0,0.0});
+
+    if(!ui->treeWidget->currentIndex().isValid())
+    {
+        ui->treeWidget->setCurrentItem(loginedWidget->child(0));
+    }
 }
 
 void MainWindow::clientOfflinedSlot(int room_id)
@@ -131,15 +144,30 @@ void MainWindow::clientOfflinedSlot(int room_id)
         }
     }
 
-//    clientsData.take(room_id);
+    clientsData.take(room_id);
 }
 
-void MainWindow::updateDataSlot(int room_id, bool is_heat_mode, int setTem, int realTem, int speed)
+void MainWindow::updateDataSlot(int room_id, bool is_heat_mode, int setTem, int realTem, int speed, double money, double power)
 {
     clientsData.value(room_id)->is_heat_mode=is_heat_mode;
     clientsData.value(room_id)->set_temp=setTem;
     clientsData.value(room_id)->real_temp=realTem;
     clientsData.value(room_id)->speed=speed;
+    clientsData.value(room_id)->money=money;
+    clientsData.value(room_id)->power=power;
+
+    if(room_id==ui->treeWidget->currentItem()->text(0).toInt())
+    {
+        ui->setTemNum->display(setTem);
+        ui->realTemNum->display(realTem);
+        ui->speedNum->display(speed);
+        if(is_heat_mode)
+            ui->mode->setText("制暖");
+        else
+            ui->mode->setText("制冷");
+        ui->money->setText(QString::number(money,10,2));
+        ui->power->setText(QString::number(power,10,2));
+    }
 }
 
 void MainWindow::on_addRoomBtn_clicked()
@@ -193,7 +221,7 @@ void MainWindow::on_turnOnBtn_clicked()
     ui->turnOffBtn->setEnabled(true);
     ui->heatModeBtn->setEnabled(true);
     ui->coldModeBtn->setEnabled(true);
-    ui->addRoomBtn->setEnabled(true);
+//    ui->addRoomBtn->setEnabled(true);
 }
 
 void MainWindow::on_turnOffBtn_clicked()
@@ -204,7 +232,7 @@ void MainWindow::on_turnOffBtn_clicked()
     ui->turnOffBtn->setEnabled(false);
     ui->heatModeBtn->setEnabled(false);
     ui->coldModeBtn->setEnabled(false);
-    ui->addRoomBtn->setEnabled(false);
+//    ui->addRoomBtn->setEnabled(false);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

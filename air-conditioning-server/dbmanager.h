@@ -18,6 +18,8 @@ public:
 
     bool insertData(DBData data);   //插入
 
+    int getSwitchNum(int room_id,QString user_id);    //查询总费用
+
     double getTotalFee(int room_id,QString user_id);    //查询总费用
 
     double getTotalPower(int room_id,QString user_id);    //查询总功率
@@ -27,6 +29,8 @@ public:
     bool genWeekReport(int room_id,int week);
 
     bool genMonthReport(int room_id,int month);
+
+    void updateSwitchNum(int room_id,QString user_id,int switch_num);
 
 private:
     bool createTable();

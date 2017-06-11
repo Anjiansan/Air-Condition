@@ -18,17 +18,22 @@ public:
     ~Login();
 
 private slots:
+    void connectErrorSlot();
+
     void on_cancleBtn_clicked();
 
     void on_loginBtn_clicked();
 
     void loginResult(bool isOK);
 
+    void timeoutError();
+
 private:
     Ui::Login *ui;
 
 public:
     ClientSocket *client;
+    QTimer *timer;  //主机超时回复
 };
 
 #endif // LOGIN_H

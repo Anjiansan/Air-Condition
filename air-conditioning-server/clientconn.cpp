@@ -19,7 +19,8 @@ ClientConn::ClientConn(qintptr socketDescriptor, MainWindow *mainWindow, QObject
     connect(this,SIGNAL(readyRead()),this,SLOT(receiveData()));
     connect(this,SIGNAL(clientLogined(int)),this->mainWindow,SLOT(clientLoginedSlot(int)));
     connect(this,SIGNAL(clientOfflined(int)),this->mainWindow,SLOT(clientOfflinedSlot(int)));
-    connect(this,SIGNAL(updateData(int,bool,int,int,int)),this->mainWindow,SLOT(updateDataSlot(int,bool,int,int,int)));
+    connect(this,SIGNAL(updateData(int,bool,int,int,int,double,double)),this->mainWindow,SLOT(updateDataSlot(int,bool,int,int,int,double,double)));
+    connect(this,SIGNAL(disconnected()),this,SLOT(clientDisconnect()));
 }
 
 ClientConn::~ClientConn()
@@ -76,6 +77,12 @@ bool ClientConn::isReqValid(bool isHeatMode, int setTem, int realTem)
     }
 }
 
+void ClientConn::clientDisconnect()
+{
+    mainWindow->getDBManager()->updateSwitchNum(this->room_id,dbData.user_id,switch_num);
+    emit clientOfflined(this->room_id);
+}
+
 void ClientConn::receiveData()
 {
     bool isRun=mainWindow->getStatus();
@@ -111,6 +118,7 @@ void ClientConn::handleRqt(QJsonDocument parse_document)
     if(op==LOG_IN_USER)
     {
         int room_id=parse_document.object().value("room_id").toInt();
+        this->room_id=room_id;  //记住room_id
         QString user_id=parse_document.object().value("user_id").toString();
 
         ClientConn::mutex.lock();   //加锁
@@ -127,17 +135,18 @@ void ClientConn::handleRqt(QJsonDocument parse_document)
             QMap<int,QString> rooms=this->mainWindow->getRooms();
             bool mode=mainWindow->getMode();
             int temp=mainWindow->getTemp();
-            if(rooms.contains(room_id)&&rooms[room_id]==user_id)
+            if(rooms.contains(room_id) && rooms[room_id]==user_id && mainWindow->isLoginValid(room_id))
             {
                 json.insert("ret", LOG_IN_SUCC);
                 json.insert("is_heat_mode", mode);
                 json.insert("default", temp);
-                this->room_id=room_id;  //记住room_id
                 dbData.room_id=this->room_id;
                 dbData.user_id=user_id;
                 dbData.total_fee=mainWindow->getDBManager()->getTotalFee(room_id,user_id);
                 dbData.total_power=mainWindow->getDBManager()->getTotalPower(room_id,user_id);
-                qDebug()<<dbData.total_fee;
+                dbData.switch_num=mainWindow->getDBManager()->getSwitchNum(room_id,user_id);
+                switch_num=dbData.switch_num;
+//                qDebug()<<dbData.total_fee;
 
                 emit clientLogined(this->room_id);  //更新界面
             }
@@ -175,20 +184,20 @@ void ClientConn::handleRqt(QJsonDocument parse_document)
 
             if(!is_on)  //从控机关机
             {
-                if(lastStatus)  //更新开关机计数
-                {
-                    lastStatus=false;
-                    switch_num++;
-                }
+                lastStatus=false;
 
-                emit clientOfflined(this->room_id);
+//                emit clientOfflined(this->room_id);
                 ClientConn::mutex.lock();   //加锁
                 ClientConn::query.remove(ClientConn::query.indexOf(this->room_id));
                 ClientConn::mutex.unlock(); //解锁
-                this->thread()->quit();
+//                this->thread()->quit();
             }
             else
             {
+                if(!lastStatus) //更新开关机计数
+                {
+                    switch_num++;
+                }
                 lastStatus=true;    //开机
                 bool isFinish=false;
 
@@ -270,7 +279,7 @@ void ClientConn::handleRqt(QJsonDocument parse_document)
                     db->insertData(dbData);
                 }
 
-                emit updateData(room_id,is_heat_mode,set_tem,real_tem,speed);   //更新客户端数据
+                emit updateData(room_id,is_heat_mode,set_tem,real_tem,speed,dbData.total_fee,dbData.total_power);   //更新客户端数据
 
                 int frequence=mainWindow->getFlashSpeed();
                 QJsonObject json;

@@ -2,6 +2,7 @@
 #define CLIENTSOCKET_H
 
 #include <QtNetwork>
+class QMessageBox;
 #include "protocol.h"
 
 class ClientSocket:public QObject
@@ -16,7 +17,11 @@ public:
 
     void sendReq(bool in_on,bool is_heat_mode,int set_temp,int real_temp,int speed);
 
+    void connectServer();
+
 signals:
+    void connectError();
+
     void loginSignal(bool);
 
     void updateMain(bool,int);
@@ -28,7 +33,7 @@ signals:
 private slots:
     void receiveData(void);
 
-    void serverError(QAbstractSocket::SocketError error);
+    void serverError();
 
 private:
     QTcpSocket *client;
