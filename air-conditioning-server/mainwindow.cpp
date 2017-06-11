@@ -215,15 +215,21 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::on_dayReport_clicked()
 {
-    dbManage->genDayReport(ui->roomNum->currentText().toInt());
+    int day=ui->timeWidget->selectedDate().day();
+    qDebug()<<day;
+    dbManage->genDayReport(ui->roomNum->currentText().toInt(),day);
 }
 
 void MainWindow::on_weekReport_clicked()
 {
-
+    int week=ui->timeWidget->selectedDate().weekNumber();
+    qDebug()<<week;
+    dbManage->genWeekReport(ui->roomNum->currentText().toInt(),week);
 }
 
 void MainWindow::on_monthReport_clicked()
 {
-
+    int month=ui->timeWidget->selectedDate().month();
+    qDebug()<<month;
+    dbManage->genMonthReport(ui->roomNum->currentText().toInt(),month);
 }

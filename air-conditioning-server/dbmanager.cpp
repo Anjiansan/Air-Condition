@@ -17,13 +17,13 @@ DBManager::DBManager()
         qDebug()<<"Failed to create table";
     }
 
-    weeks.append("周日"); //初始化
-    weeks.append("周一");
-    weeks.append("周二");
-    weeks.append("周三");
-    weeks.append("周四");
-    weeks.append("周五");
-    weeks.append("周六");
+//    weeks.append("周日"); //初始化
+//    weeks.append("周一");
+//    weeks.append("周二");
+//    weeks.append("周三");
+//    weeks.append("周四");
+//    weeks.append("周五");
+//    weeks.append("周六");
 }
 
 bool DBManager::createTable()   //创建表
@@ -54,7 +54,7 @@ bool DBManager::insertData(DBData data)
 {
     QDateTime time = QDateTime::currentDateTime();//获取系统现在的时间
     QString month = time.toString("M");
-    int week = weeks.indexOf(time.toString("ddd"));
+    int week = time.date().weekNumber();
     QString day = time.toString("d");
 
     QSqlQuery query;
@@ -105,24 +105,81 @@ double DBManager::getTotalPower(int room_id, QString user_id)
     }
 }
 
-bool DBManager::genDayReport(int room_id)
+bool DBManager::genDayReport(int room_id, int day)
 {
     QSqlQuery query;
-    QString sqlString=QObject::tr("select * from airCondition where room_id=%1 and isOneReq=1;").
-            arg(room_id);
+    QString sqlString=QObject::tr("select * from airCondition where room_id=%1 and day=%2 and isOneReq=1;").
+            arg(room_id).arg (day);
     query.exec (sqlString);
 
     std::ofstream out("日报表.txt");
-    out<<"房间号\t"<<"开关机的次数\t"<<"温控请求起止时间\t"<<"温控请求起止温度\t"
-      <<"风量大小\t"<<"温控请求所需费用\t"<<"总费用"<<std::endl;
+    double totalFee=0;
+    out<<std::setw(15)<<"房间号\t"<<std::setw(15)<<"开关机的次数\t"<<std::setw(28)<<"温控请求起止时间\t"
+      <<"温控请求起止温度\t"<<"风量大小\t"<<"温控请求所需费用"<<std::endl;
     while(query.next())
     {
-        out<<query.value(0).toString().toStdString()<<"\t"<<query.value(2).toString().toStdString()
-          <<"\t"<<query.value(6).toString().toStdString()<<"~"<<query.value(7).toString().toStdString()
-          <<"\t"<<query.value(8).toString().toStdString()<<"~"<<query.value(9).toString().toStdString()
-          <<"\t"<<query.value(10).toString().toStdString()<<"\t"<<query.value(11).toString().toStdString()
-          <<"\t"<<query.value(12).toString().toStdString()<<std::endl;
+        out<<std::setw(10)<<query.value(0).toString().toStdString()<<"\t"<<std::setw(10)
+          <<query.value(2).toString().toStdString()<<"\t"<<query.value(6).toString().toStdString()
+          <<"~"<<query.value(7).toString().toStdString()<<"\t"<<std::setw(10)<<query.value(8).toString().toStdString()
+          <<"~"<<query.value(9).toString().toStdString()<<"\t"<<std::setw(6)<<query.value(10).toString().toStdString()
+          <<"\t"<<std::setw(12)<<query.value(11).toString().toStdString()<<std::endl;
+        totalFee+=query.value(11).toDouble();
     }
+    out<<std::endl<<"总费用:"<<totalFee;
+
+    out.close();
+
+    return true;
+}
+
+bool DBManager::genWeekReport(int room_id, int week)
+{
+    QSqlQuery query;
+    QString sqlString=QObject::tr("select * from airCondition where room_id=%1 and week=%2 and isOneReq=1;").
+            arg(room_id).arg (week);
+    query.exec (sqlString);
+
+    std::ofstream out("周报表.txt");
+    double totalFee=0;
+    out<<std::setw(15)<<"房间号\t"<<std::setw(15)<<"开关机的次数\t"<<std::setw(28)<<"温控请求起止时间\t"
+      <<"温控请求起止温度\t"<<"风量大小\t"<<"温控请求所需费用"<<std::endl;
+    while(query.next())
+    {
+        out<<std::setw(10)<<query.value(0).toString().toStdString()<<"\t"<<std::setw(10)
+          <<query.value(2).toString().toStdString()<<"\t"<<query.value(6).toString().toStdString()
+          <<"~"<<query.value(7).toString().toStdString()<<"\t"<<std::setw(10)<<query.value(8).toString().toStdString()
+          <<"~"<<query.value(9).toString().toStdString()<<"\t"<<std::setw(6)<<query.value(10).toString().toStdString()
+          <<"\t"<<std::setw(12)<<query.value(11).toString().toStdString()<<std::endl;
+        totalFee+=query.value(11).toDouble();
+    }
+    out<<std::endl<<"总费用:"<<totalFee;
+
+    out.close();
+
+    return true;
+}
+
+bool DBManager::genMonthReport(int room_id, int month)
+{
+    QSqlQuery query;
+    QString sqlString=QObject::tr("select * from airCondition where room_id=%1 and month=%2 and isOneReq=1;").
+            arg(room_id).arg (month);
+    query.exec (sqlString);
+
+    std::ofstream out("月报表.txt");
+    double totalFee=0;
+    out<<std::setw(15)<<"房间号\t"<<std::setw(15)<<"开关机的次数\t"<<std::setw(28)<<"温控请求起止时间\t"
+      <<"温控请求起止温度\t"<<"风量大小\t"<<"温控请求所需费用"<<std::endl;
+    while(query.next())
+    {
+        out<<std::setw(10)<<query.value(0).toString().toStdString()<<"\t"<<std::setw(10)
+          <<query.value(2).toString().toStdString()<<"\t"<<query.value(6).toString().toStdString()
+          <<"~"<<query.value(7).toString().toStdString()<<"\t"<<std::setw(10)<<query.value(8).toString().toStdString()
+          <<"~"<<query.value(9).toString().toStdString()<<"\t"<<std::setw(6)<<query.value(10).toString().toStdString()
+          <<"\t"<<std::setw(12)<<query.value(11).toString().toStdString()<<std::endl;
+        totalFee+=query.value(11).toDouble();
+    }
+    out<<std::endl<<"总费用:"<<totalFee;
 
     out.close();
 
