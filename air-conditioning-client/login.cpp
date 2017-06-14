@@ -62,3 +62,9 @@ void Login::timeoutError()
     QMessageBox::warning(this,tr("登录失败"),tr("主机超时未回复,请重试!"),QMessageBox::Yes);
     timer->stop();
 }
+
+void Login::closeEvent(QCloseEvent *event)
+{
+    client->disconnect();
+    event->accept();
+}

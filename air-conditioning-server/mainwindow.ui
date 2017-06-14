@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>中央主空调</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QPushButton" name="addRoomBtn">

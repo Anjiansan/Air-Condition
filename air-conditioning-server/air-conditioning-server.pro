@@ -17,13 +17,16 @@ SOURCES += main.cpp\
     serversocket.cpp \
     clientconn.cpp \
     socketthread.cpp \
-    dbmanager.cpp
+    dbmanager.cpp \
+    logindialog.cpp
 
 HEADERS  += mainwindow.h \
     protocol.h \
     serversocket.h \
     clientconn.h \
     socketthread.h \
-    dbmanager.h
+    dbmanager.h \
+    logindialog.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    logindialog.ui

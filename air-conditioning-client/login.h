@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QMessageBox>
+#include <QCloseEvent>
 #include "clientsocket.h"
 
 namespace Ui {
@@ -27,6 +28,8 @@ private slots:
     void loginResult(bool isOK);
 
     void timeoutError();
+
+    void closeEvent(QCloseEvent *event);
 
 private:
     Ui::Login *ui;

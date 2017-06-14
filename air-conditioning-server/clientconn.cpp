@@ -79,7 +79,27 @@ bool ClientConn::isReqValid(bool isHeatMode, int setTem, int realTem)
 
 void ClientConn::clientDisconnect()
 {
-    mainWindow->getDBManager()->updateSwitchNum(this->room_id,dbData.user_id,switch_num);
+    if(!isReqFinish && dbData.start_temp!=lastTemp)
+    {
+        isReqFinish=true;
+
+        QTime time = QTime::currentTime();//获取系统现在的时间
+        dbData.end_time=time.toString("hh:mm:ss");
+        QTime t=QTime::fromString(dbData.start_time,"hh:mm:ss");
+        double minite=t.msecsTo(time)/1000.0/60.0;
+        dbData.power=minite*timeToPower[dbData.speed-1];
+        dbData.fee=dbData.power*5;
+        dbData.total_fee+=dbData.fee;
+        dbData.total_power+=dbData.power;
+        dbData.isOneReq=1;
+        dbData.switch_num=switch_num;
+        dbData.end_temp=lastTemp;
+
+        DBManager *db=mainWindow->getDBManager();   //写入数据库
+        db->insertData(dbData);
+    }
+    else
+        mainWindow->getDBManager()->updateSwitchNum(this->room_id,dbData.user_id,switch_num);
     emit clientOfflined(this->room_id);
 }
 
@@ -182,9 +202,31 @@ void ClientConn::handleRqt(QJsonDocument parse_document)
             int real_tem=parse_document.object().value("real_temp").toInt();
             int speed=parse_document.object().value("speed").toInt();
 
+            lastTemp=real_tem;
+
             if(!is_on)  //从控机关机
             {
                 lastStatus=false;
+
+                if(!isReqFinish && dbData.start_temp!=lastTemp)
+                {
+                    isReqFinish=true;
+
+                    QTime time = QTime::currentTime();//获取系统现在的时间
+                    dbData.end_time=time.toString("hh:mm:ss");
+                    QTime t=QTime::fromString(dbData.start_time,"hh:mm:ss");
+                    double minite=t.msecsTo(time)/1000.0/60.0;
+                    dbData.power=minite*timeToPower[dbData.speed-1];
+                    dbData.fee=dbData.power*5;
+                    dbData.total_fee+=dbData.fee;
+                    dbData.total_power+=dbData.power;
+                    dbData.isOneReq=1;
+                    dbData.switch_num=switch_num;
+                    dbData.end_temp=lastTemp;
+
+                    DBManager *db=mainWindow->getDBManager();   //写入数据库
+                    db->insertData(dbData);
+                }
 
 //                emit clientOfflined(this->room_id);
                 ClientConn::mutex.lock();   //加锁

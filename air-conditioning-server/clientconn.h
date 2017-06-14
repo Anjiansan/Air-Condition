@@ -57,6 +57,7 @@ private:
     int room_id;
     int switch_num; //开关机次数
     DBData dbData;  //写入数据库的数据
+    int lastTemp;   //上次的实时温度
     bool isReqFinish;   //本次请求是否结束
     bool lastStatus;    //上次从控机开关机状态,开机:true
     double timeToPower[3];  //时间转功率表

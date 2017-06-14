@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>从控机</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QPushButton" name="exitBtn">
