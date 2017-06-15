@@ -24,11 +24,11 @@ public:
 
     double getTotalPower(int room_id,QString user_id);    //查询总功率
 
-    bool genDayReport(int room_id,int day);
+    bool genDayReport(int room_id,int year,int month,int day);
 
-    bool genWeekReport(int room_id,int week);
+    bool genWeekReport(int room_id,int year,int week);
 
-    bool genMonthReport(int room_id,int month);
+    bool genMonthReport(int room_id,int year,int month);
 
     void updateSwitchNum(int room_id,QString user_id,int switch_num);
 

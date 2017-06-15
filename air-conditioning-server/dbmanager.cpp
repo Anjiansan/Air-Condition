@@ -33,6 +33,7 @@ bool DBManager::createTable()   //创建表
                         "room_id int,"
                         "user_id char(32),"
                         "switch_num int,"
+                        "year int,"
                         "month int,"
                         "week int,"
                         "day int,"
@@ -53,13 +54,14 @@ bool DBManager::createTable()   //创建表
 bool DBManager::insertData(DBData data)
 {
     QDateTime time = QDateTime::currentDateTime();//获取系统现在的时间
+    QString year=time.toString("yyyy");
     QString month = time.toString("M");
     int week = time.date().weekNumber();
     QString day = time.toString("d");
 
     QSqlQuery query;
-    QString sqlString=QObject::tr("insert into airCondition values(%1,\"%2\",%3,%4,%5,%6,\"%7\",\"%8\",%9,%10,%11,%12,%13,%14,%15,%16);").
-            arg (data.room_id).arg (data.user_id).arg (data.switch_num).arg (month).arg (week).arg (day).
+    QString sqlString=QObject::tr("insert into airCondition values(%1,\"%2\",%3,%4,%5,%6,%7,\"%8\",\"%9\",%10,%11,%12,%13,%14,%15,%16,%17);").
+            arg (data.room_id).arg (data.user_id).arg (data.switch_num).arg (year).arg (month).arg (week).arg (day).
             arg (data.start_time).arg (data.end_time).arg (data.start_temp).arg (data.end_temp).
             arg (data.speed).arg (data.fee).arg (data.total_fee).arg (data.power).
             arg (data.total_power).arg (data.isOneReq);
@@ -122,11 +124,11 @@ double DBManager::getTotalPower(int room_id, QString user_id)
     }
 }
 
-bool DBManager::genDayReport(int room_id, int day)
+bool DBManager::genDayReport(int room_id, int year, int month, int day)
 {
     QSqlQuery query;
-    QString sqlString=QObject::tr("select * from airCondition where room_id=%1 and day=%2 and isOneReq=1;").
-            arg(room_id).arg (day);
+    QString sqlString=QObject::tr("select * from airCondition where room_id=%1 and day=%2 and year=%3 and month=%4 and isOneReq=1;").
+            arg(room_id).arg (day).arg (year).arg (month);
     query.exec (sqlString);
 
     std::ofstream out("日报表.txt");
@@ -136,11 +138,11 @@ bool DBManager::genDayReport(int room_id, int day)
     while(query.next())
     {
         out<<std::setw(10)<<query.value(0).toString().toStdString()<<"\t"<<std::setw(10)
-          <<query.value(2).toString().toStdString()<<"\t"<<query.value(6).toString().toStdString()
-          <<"~"<<query.value(7).toString().toStdString()<<"\t"<<std::setw(10)<<query.value(8).toString().toStdString()
-          <<"~"<<query.value(9).toString().toStdString()<<"\t"<<std::setw(6)<<query.value(10).toString().toStdString()
-          <<"\t"<<std::setw(12)<<query.value(11).toString().toStdString()<<std::endl;
-        totalFee+=query.value(11).toDouble();
+          <<query.value(2).toString().toStdString()<<"\t"<<query.value(7).toString().toStdString()
+          <<"~"<<query.value(8).toString().toStdString()<<"\t"<<std::setw(10)<<query.value(9).toString().toStdString()
+          <<"~"<<query.value(10).toString().toStdString()<<"\t"<<std::setw(6)<<query.value(11).toString().toStdString()
+          <<"\t"<<std::setw(12)<<query.value(12).toString().toStdString()<<std::endl;
+        totalFee+=query.value(12).toDouble();
     }
     out<<std::endl<<"总费用:"<<totalFee;
 
@@ -149,11 +151,11 @@ bool DBManager::genDayReport(int room_id, int day)
     return true;
 }
 
-bool DBManager::genWeekReport(int room_id, int week)
+bool DBManager::genWeekReport(int room_id, int year, int week)
 {
     QSqlQuery query;
-    QString sqlString=QObject::tr("select * from airCondition where room_id=%1 and week=%2 and isOneReq=1;").
-            arg(room_id).arg (week);
+    QString sqlString=QObject::tr("select * from airCondition where room_id=%1 and week=%2 and year=%3 and isOneReq=1;").
+            arg(room_id).arg (week).arg (year);
     query.exec (sqlString);
 
     std::ofstream out("周报表.txt");
@@ -163,11 +165,11 @@ bool DBManager::genWeekReport(int room_id, int week)
     while(query.next())
     {
         out<<std::setw(10)<<query.value(0).toString().toStdString()<<"\t"<<std::setw(10)
-          <<query.value(2).toString().toStdString()<<"\t"<<query.value(6).toString().toStdString()
-          <<"~"<<query.value(7).toString().toStdString()<<"\t"<<std::setw(10)<<query.value(8).toString().toStdString()
-          <<"~"<<query.value(9).toString().toStdString()<<"\t"<<std::setw(6)<<query.value(10).toString().toStdString()
-          <<"\t"<<std::setw(12)<<query.value(11).toString().toStdString()<<std::endl;
-        totalFee+=query.value(11).toDouble();
+          <<query.value(2).toString().toStdString()<<"\t"<<query.value(7).toString().toStdString()
+          <<"~"<<query.value(8).toString().toStdString()<<"\t"<<std::setw(10)<<query.value(9).toString().toStdString()
+          <<"~"<<query.value(10).toString().toStdString()<<"\t"<<std::setw(6)<<query.value(11).toString().toStdString()
+          <<"\t"<<std::setw(12)<<query.value(12).toString().toStdString()<<std::endl;
+        totalFee+=query.value(12).toDouble();
     }
     out<<std::endl<<"总费用:"<<totalFee;
 
@@ -176,11 +178,11 @@ bool DBManager::genWeekReport(int room_id, int week)
     return true;
 }
 
-bool DBManager::genMonthReport(int room_id, int month)
+bool DBManager::genMonthReport(int room_id, int year, int month)
 {
     QSqlQuery query;
-    QString sqlString=QObject::tr("select * from airCondition where room_id=%1 and month=%2 and isOneReq=1;").
-            arg(room_id).arg (month);
+    QString sqlString=QObject::tr("select * from airCondition where room_id=%1 and month=%2 and year=%3 and isOneReq=1;").
+            arg(room_id).arg (month).arg (year);
     query.exec (sqlString);
 
     std::ofstream out("月报表.txt");
@@ -190,11 +192,11 @@ bool DBManager::genMonthReport(int room_id, int month)
     while(query.next())
     {
         out<<std::setw(10)<<query.value(0).toString().toStdString()<<"\t"<<std::setw(10)
-          <<query.value(2).toString().toStdString()<<"\t"<<query.value(6).toString().toStdString()
-          <<"~"<<query.value(7).toString().toStdString()<<"\t"<<std::setw(10)<<query.value(8).toString().toStdString()
-          <<"~"<<query.value(9).toString().toStdString()<<"\t"<<std::setw(6)<<query.value(10).toString().toStdString()
-          <<"\t"<<std::setw(12)<<query.value(11).toString().toStdString()<<std::endl;
-        totalFee+=query.value(11).toDouble();
+          <<query.value(2).toString().toStdString()<<"\t"<<query.value(7).toString().toStdString()
+          <<"~"<<query.value(8).toString().toStdString()<<"\t"<<std::setw(10)<<query.value(9).toString().toStdString()
+          <<"~"<<query.value(10).toString().toStdString()<<"\t"<<std::setw(6)<<query.value(11).toString().toStdString()
+          <<"\t"<<std::setw(12)<<query.value(12).toString().toStdString()<<std::endl;
+        totalFee+=query.value(12).toDouble();
     }
     out<<std::endl<<"总费用:"<<totalFee;
 
