@@ -177,6 +177,13 @@ void MainWindow::on_addRoomBtn_clicked()
 
     rooms.insert(room_id,user_id);
 
+    ui->roomNum->clear();
+    for(int i=0;i<rooms.size();i++)
+    {
+        ui->roomNum->addItem(QString::number(rooms.keys().at(i)));
+    }
+    ui->roomNum->setCurrentIndex(0);
+
     ui->roomText->clear();  //添加完清除
     ui->pwdText->clear();
 }

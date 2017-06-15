@@ -38,9 +38,20 @@ void Login::on_loginBtn_clicked()
     QString account=ui->accountText->text().trimmed();
     QString pwd=ui->pwdText->text().trimmed();
 
-    client->login(account.toInt(),pwd);
+    QByteArray ba = account.toLatin1();//QString 转换为 char*
+    const char *s = ba.data();
+    while(*s && *s>='0' && *s<='9') s++;
+    if(*s)
+    {
+        QMessageBox::warning(this,tr("登录失败"),tr("用户名错误!"),QMessageBox::Yes);
+    }
+    else
+    {
+        client->login(account.toInt(),pwd);
 
-    timer->start(2000);
+        timer->start(2000);
+    }
+
 }
 
 void Login::loginResult(bool isOK)

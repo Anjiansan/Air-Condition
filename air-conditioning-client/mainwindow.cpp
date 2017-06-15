@@ -244,6 +244,7 @@ void MainWindow::updateUISlot(bool is_valid, double power, double money,int freq
 void MainWindow::on_riseTem_clicked()
 {
     this->setTem++;
+    ui->reduceTem->setEnabled(true);
 
     if(isHeatMode && setTem>=30)
     {
@@ -267,6 +268,7 @@ void MainWindow::on_riseTem_clicked()
 void MainWindow::on_reduceTem_clicked()
 {
     this->setTem--;
+    ui->riseTem->setEnabled(true);
 
     if(isHeatMode && setTem<=25)
     {
