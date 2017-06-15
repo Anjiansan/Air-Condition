@@ -14,7 +14,15 @@ Login::Login(QWidget *parent) :
     connect(timer,SIGNAL(timeout()),this,SLOT(timeoutError()));
     connect(client,SIGNAL(connectError()),this,SLOT(connectErrorSlot()));
 
-    client->connectServer();
+//    ui->accountLab->setVisible(false);
+//    ui->accountText->setVisible(false);
+//    ui->pwdLab->setVisible(false);
+//    ui->pwdText->setVisible(false);
+//    ui->cancleBtn->setVisible(false);
+//    ui->loginBtn->setVisible(false);
+
+    ui->IP->setText("192.168.43.");
+    ui->port->setText("6666");
 }
 
 Login::~Login()
@@ -24,8 +32,8 @@ Login::~Login()
 
 void Login::connectErrorSlot()
 {
-    QMessageBox::warning(this,tr("连接失败"),tr("连接主机失败,请重启!"),QMessageBox::Yes);
-    exit(-1);
+    QMessageBox::warning(this,tr("连接失败"),tr("连接主机失败,请重试!"),QMessageBox::Yes);
+//    exit(-1);
 }
 
 void Login::on_cancleBtn_clicked()
@@ -78,4 +86,28 @@ void Login::closeEvent(QCloseEvent *event)
 {
     client->disconnect();
     event->accept();
+}
+
+void Login::on_connectBtn_clicked()
+{
+    QString IP=ui->IP->text();
+    QString port=ui->port->text();
+
+    if(client->connectServer(IP,port.toInt()))
+        QMessageBox::warning(this,tr("连接成功"),tr("连接主机成功!"),QMessageBox::Yes);
+//    if(client->connectServer(IP,port.toInt()))
+//    {
+//        ui->IPLab->setVisible(false);
+//        ui->IP->setVisible(false);
+//        ui->portLab->setVisible(false);
+//        ui->port->setVisible(false);
+//        ui->connectBtn->setVisible(false);
+
+//        ui->accountLab->setVisible(true);
+//        ui->accountText->setVisible(true);
+//        ui->pwdLab->setVisible(true);
+//        ui->pwdText->setVisible(true);
+//        ui->cancleBtn->setVisible(true);
+//        ui->loginBtn->setVisible(true);
+//    }
 }

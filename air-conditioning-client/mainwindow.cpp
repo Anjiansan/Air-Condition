@@ -9,7 +9,7 @@ MainWindow::MainWindow(QWidget *parent, ClientSocket *client) :
 
     isRun=false;
     isHeatMode=false;   //开始初始值
-    realTem=22;
+    realTem=30;
     setTem=22;
     speed=2;
 
@@ -61,7 +61,8 @@ void MainWindow::updateMainSlot(bool mode, int temp)
     {
         ui->mainMode->setText("制冷");
     }
-    ui->realTemNum->display(temp);
+    setTem=temp;
+    ui->setTemNum->display(temp);
 }
 
 void MainWindow::on_turnOnBtn_clicked()
@@ -77,11 +78,26 @@ void MainWindow::on_turnOnBtn_clicked()
     ui->heatModeBtn->setEnabled(true);
 
 //    ui->realTemNum->display(realTem);
-    ui->setTemNum->display(setTem);
+    ui->realTemNum->display(realTem);
     ui->speedNum->display(speed);
     ui->mode->setText("制冷");
     outDoorTem=30;  //制冷模式室外温度默认30度
     ui->outDoorTemp->display(outDoorTem);
+
+    if(isHeatMode)
+    {
+        if(setTem>=30)
+            ui->riseTem->setEnabled(false);
+        if(setTem<=25)
+            ui->reduceTem->setEnabled(false);
+    }
+    else
+    {
+        if(setTem>=25)
+            ui->riseTem->setEnabled(false);
+        if(setTem<=18)
+            ui->reduceTem->setEnabled(false);
+    }
 
 //    this->sendTimer->start(2000);
     this->client->sendReq(true,isHeatMode,realTem,setTem,speed);
@@ -157,6 +173,7 @@ void MainWindow::errorOccureSLOT()
     sendTimer->stop();
     workTimer->stop();
     naturalTimer->start(3000);
+    this->close();
 }
 
 void MainWindow::sendRiseTemReq()
@@ -321,6 +338,8 @@ void MainWindow::on_coldModeBtn_clicked()
     ui->outDoorTemp->display(outDoorTem);
     ui->heatModeBtn->setEnabled(true);
     ui->coldModeBtn->setEnabled(false);
+    setTem=22;
+    ui->setTemNum->display(setTem);
     this->client->sendReq(true,isHeatMode,setTem,realTem,speed);
 }
 
@@ -332,5 +351,7 @@ void MainWindow::on_heatModeBtn_clicked()
     ui->outDoorTemp->display(outDoorTem);
     ui->coldModeBtn->setEnabled(true);
     ui->heatModeBtn->setEnabled(false);
+    setTem=28;
+    ui->setTemNum->display(setTem);
     this->client->sendReq(true,isHeatMode,setTem,realTem,speed);
 }

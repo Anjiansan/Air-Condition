@@ -31,6 +31,8 @@ private slots:
 
     void closeEvent(QCloseEvent *event);
 
+    void on_connectBtn_clicked();
+
 private:
     Ui::Login *ui;
 

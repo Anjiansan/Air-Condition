@@ -17,7 +17,7 @@ public:
 
     void sendReq(bool in_on,bool is_heat_mode,int set_temp,int real_temp,int speed);
 
-    void connectServer();
+    bool connectServer(QString IP,int port);
 
 signals:
     void connectError();

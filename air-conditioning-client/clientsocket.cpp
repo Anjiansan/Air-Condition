@@ -17,11 +17,13 @@ void ClientSocket::receiveData()
 {
     QDateTime timeNow=QDateTime::currentDateTime();//获取系统现在的时间
     QString str = timeNow.toString("hh:mm:ss"); //设置显示格式
-    char data[512];
-    client->read(data,512);
-    qDebug()<<str<<data;
+    char d[512];
+    client->read(d,512);
+    std::string data(d);
+    data=data.substr(0, data.find("}") + 1);
+    qDebug()<<str<<QString::fromStdString(data);
     QJsonParseError err;
-    QJsonDocument parse_document = QJsonDocument::fromJson(data,&err);
+    QJsonDocument parse_document = QJsonDocument::fromJson(data.data(),&err);
     if(err.error==QJsonParseError::NoError)
     {
         int ret=parse_document.object().value("ret").toInt();
@@ -95,11 +97,13 @@ void ClientSocket::sendReq(bool in_on, bool is_heat_mode, int set_temp, int real
     qDebug()<<str<<data;
 }
 
-void ClientSocket::connectServer()
+bool ClientSocket::connectServer(QString IP, int port)
 {
-    client->connectToHost(QHostAddress("127.0.0.1"),2222);
+    client->connectToHost(QHostAddress(IP),port);
     if(!client->waitForConnected(2000))
     {
         emit connectError();
+        return false;
     }
+    return true;
 }

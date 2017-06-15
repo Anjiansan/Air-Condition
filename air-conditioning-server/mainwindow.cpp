@@ -27,7 +27,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->flashSpdBox->setValue(1000);
 
     server=new ServerSocket(this);
-    server->listen(QHostAddress::AnyIPv4,2222);
+    server->listen(QHostAddress::AnyIPv4,6666);
 
     rooms.insert(0,"0");
     rooms.insert(1,"1");
@@ -231,7 +231,7 @@ void MainWindow::on_turnOnBtn_clicked()
     ui->turnOnBtn->setEnabled(false);
     ui->turnOffBtn->setEnabled(true);
     ui->heatModeBtn->setEnabled(true);
-    ui->coldModeBtn->setEnabled(true);
+//    ui->coldModeBtn->setEnabled(true);
 //    ui->addRoomBtn->setEnabled(true);
 }
 
