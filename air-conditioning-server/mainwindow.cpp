@@ -22,17 +22,21 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->coldModeBtn->setEnabled(false);
 //    ui->addRoomBtn->setEnabled(false);
 
-    flashSpeed=2000;    //默认刷新频率
+    flashSpeed=1000;    //默认刷新频率
     ui->flashSpdBox->setRange(1000,1000000);
-    ui->flashSpdBox->setValue(2000);
+    ui->flashSpdBox->setValue(1000);
 
     server=new ServerSocket(this);
     server->listen(QHostAddress::AnyIPv4,2222);
 
     rooms.insert(0,"0");
     rooms.insert(1,"1");
+    rooms.insert(2,"2");
+    rooms.insert(3,"3");
     ui->roomNum->addItem("0");
     ui->roomNum->addItem("1");
+    ui->roomNum->addItem("2");
+    ui->roomNum->addItem("3");
     ui->roomNum->setCurrentIndex(0);
 
     dbManage=new DBManager();

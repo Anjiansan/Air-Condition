@@ -83,7 +83,7 @@ int DBManager::getSwitchNum(int room_id, QString user_id)
     }
     else
     {
-        return query.value("switch_num").toInt();
+        return query.value(0).toInt();
     }
 }
 

@@ -105,25 +105,21 @@ void ClientConn::clientDisconnect()
 
 void ClientConn::receiveData()
 {
-    bool isRun=mainWindow->getStatus();
     char data[512];
     this->read(data,512);
 
-    if(isRun)
+    QDateTime timeNow=QDateTime::currentDateTime();//获取系统现在的时间
+    QString str = timeNow.toString("hh:mm:ss"); //设置显示格式
+    qDebug()<<str<<data;
+
+//    qDebug()<<data;
+    QJsonParseError err;
+    QJsonDocument parse_document = QJsonDocument::fromJson(data,&err);
+    if(err.error==QJsonParseError::NoError)
     {
-        QDateTime timeNow=QDateTime::currentDateTime();//获取系统现在的时间
-        QString str = timeNow.toString("hh:mm:ss"); //设置显示格式
-        qDebug()<<str<<data;
-
-    //    qDebug()<<data;
-        QJsonParseError err;
-        QJsonDocument parse_document = QJsonDocument::fromJson(data,&err);
-        if(err.error==QJsonParseError::NoError)
-        {
-            handleRqt(parse_document);
-        }
-
+        handleRqt(parse_document);
     }
+
     //    qDebug()<<this->bytesAvailable();
     if(this->bytesAvailable()>0)
     {
@@ -166,7 +162,7 @@ void ClientConn::handleRqt(QJsonDocument parse_document)
                 dbData.total_power=mainWindow->getDBManager()->getTotalPower(room_id,user_id);
                 dbData.switch_num=mainWindow->getDBManager()->getSwitchNum(room_id,user_id);
                 switch_num=dbData.switch_num;
-//                qDebug()<<dbData.total_fee;
+                qDebug()<<switch_num;
 
                 emit clientLogined(this->room_id);  //更新界面
             }
@@ -186,6 +182,7 @@ void ClientConn::handleRqt(QJsonDocument parse_document)
     }
     else if(op==REPORT_STATE)
     {
+
         ClientConn::mutex.lock();   //加锁
         ClientConn::query.append(this->room_id);
 
@@ -194,139 +191,166 @@ void ClientConn::handleRqt(QJsonDocument parse_document)
             isDeal=true;
         ClientConn::mutex.unlock(); //解锁
 
-        if(isDeal)  //可以处理
+        bool is_on=parse_document.object().value("is_on").toBool();
+        bool is_heat_mode=parse_document.object().value("is_heat_mode").toBool();
+        int set_tem=parse_document.object().value("set_temp").toInt();
+        int real_tem=parse_document.object().value("real_temp").toInt();
+        int speed=parse_document.object().value("speed").toInt();
+
+        lastTemp=real_tem;
+
+        emit updateData(room_id,is_heat_mode,set_tem,real_tem,speed,dbData.total_fee,dbData.total_power);   //更新客户端数据
+
+        bool isRun=mainWindow->getStatus();
+        if(isRun)
         {
-            bool is_on=parse_document.object().value("is_on").toBool();
-            bool is_heat_mode=parse_document.object().value("is_heat_mode").toBool();
-            int set_tem=parse_document.object().value("set_temp").toInt();
-            int real_tem=parse_document.object().value("real_temp").toInt();
-            int speed=parse_document.object().value("speed").toInt();
-
-            lastTemp=real_tem;
-
-            if(!is_on)  //从控机关机
+            if(isDeal)  //可以处理
             {
-                lastStatus=false;
-
-                if(!isReqFinish && dbData.start_temp!=lastTemp)
+                if(!is_on)  //从控机关机
                 {
-                    isReqFinish=true;
+                    lastStatus=false;
 
-                    QTime time = QTime::currentTime();//获取系统现在的时间
-                    dbData.end_time=time.toString("hh:mm:ss");
-                    QTime t=QTime::fromString(dbData.start_time,"hh:mm:ss");
-                    double minite=t.msecsTo(time)/1000.0/60.0;
-                    dbData.power=minite*timeToPower[dbData.speed-1];
-                    dbData.fee=dbData.power*5;
-                    dbData.total_fee+=dbData.fee;
-                    dbData.total_power+=dbData.power;
-                    dbData.isOneReq=1;
-                    dbData.switch_num=switch_num;
-                    dbData.end_temp=lastTemp;
+                    if(!isReqFinish && dbData.start_temp!=lastTemp)
+                    {
+                        isReqFinish=true;
 
-                    DBManager *db=mainWindow->getDBManager();   //写入数据库
-                    db->insertData(dbData);
+                        QTime time = QTime::currentTime();//获取系统现在的时间
+                        dbData.end_time=time.toString("hh:mm:ss");
+                        QTime t=QTime::fromString(dbData.start_time,"hh:mm:ss");
+                        double minite=t.msecsTo(time)/1000.0/60.0;
+                        dbData.power=minite*timeToPower[dbData.speed-1];
+                        dbData.fee=dbData.power*5;
+                        dbData.total_fee+=dbData.fee;
+                        dbData.total_power+=dbData.power;
+                        dbData.isOneReq=1;
+                        dbData.switch_num=switch_num;
+                        dbData.end_temp=lastTemp;
+
+                        DBManager *db=mainWindow->getDBManager();   //写入数据库
+                        db->insertData(dbData);
+                    }
+
+    //                emit clientOfflined(this->room_id);
+                    ClientConn::mutex.lock();   //加锁
+                    ClientConn::query.remove(ClientConn::query.indexOf(this->room_id));
+                    ClientConn::mutex.unlock(); //解锁
+    //                this->thread()->quit();
                 }
+                else
+                {
+                    if(!lastStatus) //更新开关机计数
+                    {
+                        switch_num++;
+                    }
+                    lastStatus=true;    //开机
+                    bool isFinish=false;
 
-//                emit clientOfflined(this->room_id);
-                ClientConn::mutex.lock();   //加锁
-                ClientConn::query.remove(ClientConn::query.indexOf(this->room_id));
-                ClientConn::mutex.unlock(); //解锁
-//                this->thread()->quit();
+                    bool isValid=isReqValid(is_heat_mode,set_tem,real_tem);
+                    if(isReqFinish && isValid) //新请求
+                    {
+                        isReqFinish=false;
+
+                        QTime time = QTime::currentTime();//获取系统现在的时间
+                        dbData.start_time=time.toString("hh:mm:ss");
+                        dbData.start_temp=real_tem;
+                        dbData.end_temp=set_tem;
+                        dbData.speed=speed;
+                        dbData.switch_num=switch_num;
+                    }
+
+                    if(!isReqFinish && dbData.end_temp==set_tem && real_tem==set_tem) //本次请求完成
+                    {
+                        isReqFinish=true;
+                        isFinish=true;
+
+                        QTime time = QTime::currentTime();//获取系统现在的时间
+                        dbData.end_time=time.toString("hh:mm:ss");
+                        QTime t=QTime::fromString(dbData.start_time,"hh:mm:ss");
+                        double minite=t.msecsTo(time)/1000.0/60.0;
+    //                    qDebug()<<t.msecsTo(time);
+                        dbData.power=minite*timeToPower[dbData.speed-1];
+    //                    qDebug()<<dbData.power;
+                        dbData.fee=dbData.power*5;
+                        dbData.total_fee+=dbData.fee;
+                        dbData.total_power+=dbData.power;
+                        dbData.isOneReq=1;
+
+                        DBManager *db=mainWindow->getDBManager();   //写入数据库
+                        db->insertData(dbData);
+    //                    qDebug()<<"insert";
+                    }
+
+                    if(!isReqFinish && isValid && dbData.end_temp!=set_tem) //本次请求未完成更改请求
+                    {
+                        isFinish=true;
+
+                        if(dbData.start_temp!=real_tem)
+                        {
+                            QTime time = QTime::currentTime();//获取系统现在的时间
+                            dbData.end_time=time.toString("hh:mm:ss");
+                            QTime t=QTime::fromString(dbData.start_time,"hh:mm:ss");
+                            double minite=t.msecsTo(time)/1000.0/60.0;
+                            dbData.power=minite*timeToPower[dbData.speed-1];
+                            dbData.fee=dbData.power*5;
+                            dbData.total_fee+=dbData.fee;
+                            dbData.total_power+=dbData.power;
+                            dbData.end_temp=real_tem;
+                            dbData.isOneReq=1;
+
+                            DBManager *db=mainWindow->getDBManager();   //写入数据库
+                            db->insertData(dbData);
+                        }
+
+                        QTime time = QTime::currentTime();//获取系统现在的时间
+                        dbData.start_time=time.toString("hh:mm:ss");    //新请求
+                        dbData.start_temp=real_tem;
+                        dbData.end_temp=set_tem;
+                        dbData.speed=speed;
+                        dbData.switch_num=switch_num;
+                    }
+
+                    if(!isFinish && isValid && real_tem!=dbData.start_temp)   //实时记录,防止主机突然出错,未写入数据库
+                    {
+                        QTime time = QTime::currentTime();//获取系统现在的时间
+                        dbData.end_time=time.toString("hh:mm:ss");
+                        QTime t=QTime::fromString(dbData.start_time,"hh:mm:ss");
+                        double minite=t.msecsTo(time)/1000.0/60.0;
+                        dbData.power=minite*timeToPower[dbData.speed-1];
+                        dbData.fee=dbData.power*5;
+                        dbData.total_fee+=dbData.fee;
+                        dbData.total_power+=dbData.power;
+                        dbData.isOneReq=0;
+                        qDebug()<<dbData.power<<dbData.fee;
+
+                        DBManager *db=mainWindow->getDBManager();   //写入数据库
+                        db->insertData(dbData);
+                    }
+
+                    int frequence=mainWindow->getFlashSpeed();
+                    QJsonObject json;
+                    json.insert("ret", REPLY_CON);
+                    json.insert("is_valid", isValid);
+                    json.insert("cost", dbData.total_fee);
+                    json.insert("power",dbData.total_power);
+                    json.insert("frequence",frequence);
+                    QJsonDocument document;
+                    document.setObject(json);
+
+                    sendData(document);
+
+                    if(!isFinish && isValid && real_tem!=dbData.start_temp)
+                    {
+                        dbData.total_fee-=dbData.fee;
+                        dbData.total_power-=dbData.power;
+                    }
+                }
             }
             else
             {
-                if(!lastStatus) //更新开关机计数
-                {
-                    switch_num++;
-                }
-                lastStatus=true;    //开机
-                bool isFinish=false;
-
-                bool isValid=isReqValid(is_heat_mode,set_tem,real_tem);
-                if(isReqFinish && isValid) //新请求
-                {
-                    isReqFinish=false;
-
-                    QTime time = QTime::currentTime();//获取系统现在的时间
-                    dbData.start_time=time.toString("hh:mm:ss");
-                    dbData.start_temp=real_tem;
-                    dbData.end_temp=set_tem;
-                    dbData.speed=speed;
-                    dbData.switch_num=switch_num;
-                }
-
-                if(!isReqFinish && dbData.end_temp==set_tem && real_tem==set_tem) //本次请求完成
-                {
-                    isReqFinish=true;
-                    isFinish=true;
-
-                    QTime time = QTime::currentTime();//获取系统现在的时间
-                    dbData.end_time=time.toString("hh:mm:ss");
-                    QTime t=QTime::fromString(dbData.start_time,"hh:mm:ss");
-                    double minite=t.msecsTo(time)/1000.0/60.0;
-//                    qDebug()<<t.msecsTo(time);
-                    dbData.power=minite*timeToPower[dbData.speed-1];
-//                    qDebug()<<dbData.power;
-                    dbData.fee=dbData.power*5;
-                    dbData.total_fee+=dbData.fee;
-                    dbData.total_power+=dbData.power;
-                    dbData.isOneReq=1;
-
-                    DBManager *db=mainWindow->getDBManager();   //写入数据库
-                    db->insertData(dbData);
-//                    qDebug()<<"insert";
-                }
-
-                if(!isReqFinish && isValid && dbData.start_temp!=real_tem && dbData.end_temp!=set_tem) //本次请求未完成更改请求
-                {
-                    isFinish=true;
-
-                    QTime time = QTime::currentTime();//获取系统现在的时间
-                    dbData.end_time=time.toString("hh:mm:ss");
-                    QTime t=QTime::fromString(dbData.start_time,"hh:mm:ss");
-                    double minite=t.msecsTo(time)/1000.0/60.0;
-                    dbData.power=minite*timeToPower[dbData.speed-1];
-                    dbData.fee=dbData.power*5;
-                    dbData.total_fee+=dbData.fee;
-                    dbData.total_power+=dbData.power;
-                    dbData.end_temp=real_tem;
-                    dbData.isOneReq=1;
-
-                    DBManager *db=mainWindow->getDBManager();   //写入数据库
-                    db->insertData(dbData);
-
-                    time = QTime::currentTime();//获取系统现在的时间
-                    dbData.start_time=time.toString("hh:mm:ss");    //新请求
-                    dbData.start_temp=real_tem;
-                    dbData.end_temp=set_tem;
-                    dbData.speed=speed;
-                    dbData.switch_num=switch_num;
-                }
-
-                if(!isFinish && isValid && real_tem!=dbData.start_temp)   //实时记录,防止主机突然出错,未写入数据库
-                {
-                    QTime time = QTime::currentTime();//获取系统现在的时间
-                    dbData.end_time=time.toString("hh:mm:ss");
-                    QTime t=QTime::fromString(dbData.start_time,"hh:mm:ss");
-                    double minite=t.msecsTo(time)/1000.0/60.0;
-                    dbData.power=minite*timeToPower[dbData.speed-1];
-                    dbData.fee=dbData.power*5;
-                    dbData.total_fee+=dbData.fee;
-                    dbData.total_power+=dbData.power;
-                    dbData.isOneReq=0;
-                    qDebug()<<dbData.power<<dbData.fee;
-
-                    DBManager *db=mainWindow->getDBManager();   //写入数据库
-                    db->insertData(dbData);
-                }
-
-                emit updateData(room_id,is_heat_mode,set_tem,real_tem,speed,dbData.total_fee,dbData.total_power);   //更新客户端数据
-
                 int frequence=mainWindow->getFlashSpeed();
                 QJsonObject json;
                 json.insert("ret", REPLY_CON);
-                json.insert("is_valid", isValid);
+                json.insert("is_valid", false);
                 json.insert("cost", dbData.total_fee);
                 json.insert("power",dbData.total_power);
                 json.insert("frequence",frequence);
@@ -334,21 +358,17 @@ void ClientConn::handleRqt(QJsonDocument parse_document)
                 document.setObject(json);
 
                 sendData(document);
-
-                if(!isFinish && isValid && real_tem!=dbData.start_temp)
-                {
-                    dbData.total_fee-=dbData.fee;
-                    dbData.total_power-=dbData.power;
-                }
             }
         }
         else
         {
+            int frequence=mainWindow->getFlashSpeed();
             QJsonObject json;
             json.insert("ret", REPLY_CON);
             json.insert("is_valid", false);
             json.insert("cost", dbData.total_fee);
             json.insert("power",dbData.total_power);
+            json.insert("frequence",frequence);
             QJsonDocument document;
             document.setObject(json);
 
